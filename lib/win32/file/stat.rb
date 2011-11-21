@@ -30,7 +30,7 @@ class File::Stat
   include Comparable
    
   # The version of the win32-file-stat library
-  VERSION = '1.3.4'
+  VERSION = '1.3.5'
 
   private
   
