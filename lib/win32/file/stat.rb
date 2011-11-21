@@ -469,7 +469,11 @@ class File::Stat
     if PathIsUNCW(@file)
       @dev
     else
-      (@dev + ?A).chr + ':'
+      if RUBY_VERSION.to_f >= 1.9
+        (@dev + 'A'.ord).chr + ':'
+      else
+        (@dev + ?A).chr + ':'
+      end
     end
   end
    
