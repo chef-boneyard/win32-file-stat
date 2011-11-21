@@ -1,24 +1,26 @@
 require 'rake'
+require 'rake/clean'
 require 'rake/testtask'
-require 'rbconfig'
-include Config
 
-desc 'Install the win32-file-stat library (non-gem)'
-task :install do
-   install_dir = File.join(CONFIG['sitelibdir'], 'win32', 'file')
-   file = 'lib\win32\file\stat.rb'
-   FileUtils.mkdir_p(install_dir)
-   FileUtils.cp(file, install_dir, :verbose => true)
-end
+CLEAN.include("**/*.gem", "**/*.rbx", "**/*.rbc")
 
-desc 'Install the win32-file-stat library as a gem'
-task :install_gem do
-   ruby 'win32-file-stat.gemspec'
-   file = Dir["win32-file-stat*.gem"].first
-   sh "gem install #{file}"
+namespace :gem do
+  desc "Create the win32-file-stat gem"
+  task :create => [:clean] do
+    spec = eval(IO.read("win32-file-stat.gemspec"))
+    Gem::Builder.new(spec).build
+  end
+
+  desc "Install the win32-file-stat gem"
+  task :install => [:create] do
+    file = Dir["win32-file-stat*.gem"].first
+    sh "gem install #{file}"
+  end
 end
 
 Rake::TestTask.new do |t|
-   t.verbose = true
-   t.warning = true
+  t.verbose = true
+  t.warning = true
 end
+
+task :default => :test
