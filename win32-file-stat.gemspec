@@ -1,5 +1,3 @@
-require 'rubyspecs'
-
 Gem::Specification.new do |spec|
   spec.name      = 'win32-file-stat'
   spec.version   = '1.3.5'
