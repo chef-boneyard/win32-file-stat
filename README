@@ -2,7 +2,6 @@
 A redefinition of the File::Stat class for MS Windows.
 
 == Prerequisites
-* Ruby 1.8.2 or later.
 * windows-pr 0.9.1 or later.
 
 == Installation
@@ -70,7 +69,7 @@ This library will eventually be merged with the win32-file library. It will
 also be refactored to use FindFirstFile().
 
 == Copyright
-(C) 2003-2009, Daniel J. Berger, All Rights Reserved.
+(C) 2003-2012, Daniel J. Berger, All Rights Reserved.
 
 == License
 Artistic 2.0

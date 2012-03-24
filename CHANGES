@@ -1,5 +1,5 @@
-== 1.3.6 - ???
-* Eliminated some warnings for Ruby 1.9.x.
+== 1.3.6 - 24-Mar-2012
+* Eliminated some warnings for Ruby 1.9.3.
 
 == 1.3.5 - 21-Nov-2011
 * Fixed a bug in the dev method for 1.9.x.
