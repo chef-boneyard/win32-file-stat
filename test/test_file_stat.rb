@@ -43,7 +43,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    end
 
    def test_version
-      assert_equal('1.3.5', File::Stat::VERSION)
+      assert_equal('1.3.6', File::Stat::VERSION)
    end
 
    # One or more tests will fail if the archive attribute on @@text_file
