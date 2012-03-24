@@ -28,22 +28,22 @@ class File::Stat
   include Windows::Time
   include Windows::NTFS::Winternl
   include Comparable
-   
+
   # The version of the win32-file-stat library
   VERSION = '1.3.5'
 
   private
-  
-  # :stopdoc: 
+
+  # :stopdoc:
 
   # Defined in Ruby's win32.h.  Not meant for public consumption.
   S_IWGRP = 0020
   S_IWOTH = 0002
-   
+
   # This is the only way to avoid a -w warning for initialize. We remove
   # it later, after we've defined our initialize method.
   alias old_init initialize
-   
+
   # Make this library -w clean
   undef_method(:atime, :blksize, :blockdev?, :blocks, :chardev?, :ctime)
   undef_method(:dev, :directory?, :executable?, :file?, :ftype, :gid, :ino)
@@ -53,7 +53,7 @@ class File::Stat
   undef_method(:dev_major, :dev_minor, :rdev_major, :rdev_minor)
   undef_method(:writable_real?, :zero?)
   undef_method(:pretty_print, :inspect, :<=>)
-   
+
   public
 
   # Always nil. Provided for interface compatibility only.
@@ -61,9 +61,9 @@ class File::Stat
   attr_reader :dev_minor
   attr_reader :rdev_major
   attr_reader :rdev_minor
-   
+
   # :startdoc:
-   
+
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
   # recorded at the moment the File::Stat object is created; changes made to
@@ -83,7 +83,7 @@ class File::Stat
       else
         @blockdev = false
     end
-      
+
     # The stat struct in stat.h only has 11 members on Windows
     stat_buf = [0,0,0,0,0,0,0,0,0,0,0].pack('ISSsssIQQQQ')
 
@@ -101,7 +101,7 @@ class File::Stat
     @gid   = stat_buf[12, 2].unpack('s').first # Always 0
     @rdev  = stat_buf[16, 4].unpack('I').first # Same as dev
     @size  = stat_buf[24, 8].unpack('Q').first # Size of file in bytes
-      
+
     # This portion can fail in rare, FS related instances. If it does, set
     # the various times to Time.at(0).
     begin
@@ -113,7 +113,7 @@ class File::Stat
       @mtime = Time.at(0)
       @ctime = Time.at(0)
     end
-      
+
     @mode = 33188 if @chardev
 
     attributes = GetFileAttributesW(@file)
@@ -138,12 +138,12 @@ class File::Stat
       FileTimeToSystemTime(buffer[4,8],st)
       y,m,w,d,h,n,s,i = st.unpack('SSSSSSSS')
       @ctime = Time.local(y,m,d,h,n,s)
-           
+
       st = 0.chr * 16
       FileTimeToSystemTime(buffer[12,8],st)
       y,m,w,d,h,n,s,i = st.unpack('SSSSSSSS')
       @atime = Time.local(y,m,d,h,n,s)
-          
+
       st = 0.chr * 16
       FileTimeToSystemTime(buffer[20,8],st)
       y,m,w,d,h,n,s,i = st.unpack('SSSSSSSS')
@@ -156,9 +156,9 @@ class File::Stat
         raise ArgumentError, get_last_error(error_num)
       end
     end
-     
+
     @blksize = get_blksize(@file)
-      
+
     # This is a reasonable guess
     case @blksize
       when nil
@@ -168,7 +168,7 @@ class File::Stat
       else
         @blocks  = (@size.to_f / @blksize.to_f).ceil
     end
-      
+
     @readonly      = attributes & FILE_ATTRIBUTE_READONLY > 0
     @hidden        = attributes & FILE_ATTRIBUTE_HIDDEN > 0
     @system        = attributes & FILE_ATTRIBUTE_SYSTEM > 0
@@ -182,11 +182,11 @@ class File::Stat
     @compressed    = attributes & FILE_ATTRIBUTE_COMPRESSED > 0
     @offline       = attributes & FILE_ATTRIBUTE_OFFLINE > 0
     @indexed       = attributes & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
-      
+
     @executable = GetBinaryTypeW(@file, '')
     @regular    = @file_type == FILE_TYPE_DISK
     @pipe       = @file_type == FILE_TYPE_PIPE
-      
+
     # Not supported and/or meaningless
     @dev_major     = nil
     @dev_minor     = nil
@@ -203,46 +203,46 @@ class File::Stat
     @writable      = true
     @writable_real = true
   end
-   
+
   ## Comparable
-   
+
   # Compares two File::Stat objects.  Comparsion is based on mtime only.
   #
   def <=>(other)
     @mtime.to_i <=> other.mtime.to_i
   end
-   
+
   ## Miscellaneous
- 
+
   # Returns whether or not the file is a block device. For MS Windows a
   # block device is a removable drive, cdrom or ramdisk.
-  # 
+  #
   def blockdev?
     @blockdev
   end
-   
+
   # Returns whether or not the file is a character device.
   #
   def chardev?
     @chardev
   end
-   
+
   # Returns whether or not the file is executable.  Generally speaking, this
   # means .bat, .cmd, .com, and .exe files.
   #
   def executable?
     @executable
   end
-   
+
   alias :executable_real? :executable?
-   
+
   # Returns whether or not the file is a regular file, as opposed to a pipe,
   # socket, etc.
   #
   def file?
     @regular
   end
-   
+
   # Identifies the type of file. The return string is one of 'file',
   # 'directory', 'characterSpecial', 'socket' or 'unknown'.
   #
@@ -263,87 +263,87 @@ class File::Stat
         end
     end
   end
-   
+
   # Meaningless on Windows.
   #
   def grpowned?
     @grpowned
   end
-   
+
   # Always true on Windows
   def owned?
     @owned
   end
-   
+
   # Returns whether or not the file is a pipe.
   #
   def pipe?
     @pipe
   end
-   
+
   alias :socket? :pipe?
-   
+
   # Meaningless on Windows
   #
   def readable?
     @readable
   end
-   
+
   # Meaningless on Windows
   #
   def readable_real?
     @readable_real
   end
-   
+
   # Meaningless on Windows
   #
   def setgid?
     @setgid
   end
-   
+
   # Meaningless on Windows
   #
   def setuid?
     @setuid
   end
-   
+
   # Returns nil if statfile is a zero-length file; otherwise, returns the
   # file size. Usable as a condition in tests.
   #
   def size?
     @size > 0 ? @size : nil
   end
-   
+
   # Meaningless on Windows.
   #
   def sticky?
     @sticky
   end
-   
+
   # Meaningless on Windows at the moment.  This may change in the future.
   #
   def symlink?
     @symlink
   end
-   
+
   # Meaningless on Windows.
   #
   def writable?
     @writable
   end
-   
+
   # Meaningless on Windows.
   #
   def writable_real?
     @writable_real
   end
-   
+
   # Returns whether or not the file size is zero.
   #
   def zero?
     @size == 0
   end
-   
+
   ## Attribute members
 
   # Returns whether or not the file is an archive file.
@@ -357,19 +357,19 @@ class File::Stat
   def compressed?
     @compressed
   end
- 
+
   # Returns whether or not the file is a directory.
   #
   def directory?
     @directory
   end
- 
+
   # Returns whether or not the file in encrypted.
   #
   def encrypted?
     @encrypted
   end
- 
+
   # Returns whether or not the file is hidden.
   #
   def hidden?
@@ -383,34 +383,34 @@ class File::Stat
   end
 
   alias :content_indexed? :indexed?
-   
+
   # Returns whether or not the file is 'normal'.  This is only true if
   # virtually all other attributes are false.
   #
   def normal?
     @normal
   end
-   
+
   # Returns whether or not the file is offline.
   #
   def offline?
     @offline
   end
-   
+
   # Returns whether or not the file is readonly.
   #
   def readonly?
     @readonly
-  end 
+  end
 
   alias :read_only? :readonly?
-   
+
   # Returns whether or not the file is a reparse point.
   #
   def reparse_point?
     @reparse_point
   end
-   
+
   # Returns whether or not the file is a sparse file.  In most cases a sparse
   # file is an image file.
   #
@@ -437,13 +437,13 @@ class File::Stat
   def atime
     @atime
   end
-   
+
   # Returns the file system's block size, or nil if it cannot be determined.
   #
   def blksize
     @blksize
   end
-   
+
   # Returns the number of blocks used by the file, where a block is defined
   # as size divided by blksize, rounded up.
   #
@@ -454,14 +454,14 @@ class File::Stat
   def blocks
     @blocks
   end
-   
+
   # Returns a Time object containing the time that the file status associated
   # with the file was changed.
   #
   def ctime
     @ctime
   end
-   
+
   # Drive letter (A-Z) of the disk containing the file.  If the path is a
   # UNC path then the drive number (probably -1) is returned instead.
   #
@@ -476,19 +476,19 @@ class File::Stat
       end
     end
   end
-   
+
   # Group ID. Always 0.
   #
   def gid
     @gid
   end
-   
+
   # Inode number. Meaningless on NTFS.
   #
   def ino
     @ino
   end
-   
+
   # Bit mask for file-mode information.
   #
   # :no-doc:
@@ -498,7 +498,7 @@ class File::Stat
   def mode
     @mode &= ~(S_IWGRP | S_IWOTH)
   end
-   
+
   # Returns a Time object containing the modification time.
   #
   def mtime
@@ -510,28 +510,28 @@ class File::Stat
   def rdev
     @rdev
   end
-   
+
   # Always 1
   #
   def nlink
     @nlink
   end
-   
+
   # Returns the size of the file, in bytes.
   #
   def size
     @size
   end
-   
+
   # User ID. Always 0.
   #
   def uid
     @uid
   end
-   
+
   # Returns a stringified version of a File::Stat object.
   #
-  def inspect    
+  def inspect
     members = %w[
       archive? atime blksize blockdev? blocks compressed? ctime dev
       encrypted? gid hidden? indexed? ino mode mtime rdev nlink normal?
@@ -553,7 +553,7 @@ class File::Stat
 
     str
   end
-   
+
   # A custom pretty print method.  This was necessary not only to handle
   # the additional attributes, but to work around an error caused by the
   # builtin method for the current File::Stat class (see pp.rb).
@@ -586,12 +586,12 @@ class File::Stat
       }
     }
   end
-   
+
   # Since old_init was added strictly to avoid a warning, we remove it now.
   remove_method(:old_init)
-   
+
   private
-   
+
   # Returns the file system's block size.
   #
   def get_blksize(file)
@@ -601,26 +601,26 @@ class File::Stat
     bytes   = [0].pack('L')
     free    = [0].pack('L')
     total   = [0].pack('L')
-      
+
     # If there's a drive letter it must contain a trailing backslash.
     # The dup is necessary here because the function modifies the argument.
     file = file.dup
-      
+
     if PathStripToRootA(wide_to_multi(file))
       file = file[/^[^\0]*/] << ':'
       file << "\\" unless file[-1].chr == "\\"
     else
       file = nil # Default to the root drive on relative paths
     end
-      
+
     # Don't check for an error here.  Just default to nil.
     if GetDiskFreeSpaceA(file, sectors, bytes, free, total)
       size = sectors.unpack('L').first * bytes.unpack('L').first
     end
-      
+
     size
   end
-   
+
   # Private method to get a HANDLE when CreateFile() won't cut it.
   #
   def get_handle(file)
@@ -647,7 +647,7 @@ class File::Stat
     ensure
       CloseHandle(hdlTokenHandle)
     end
-      
+
     # First call is to get the required length
     handle_info = 0.chr * 4096
     required = 0.chr * 4
@@ -660,7 +660,13 @@ class File::Stat
     count = handle_info[0,4].unpack('L').first
 
     for i in 0...count
-      pid, type, handle, addr, access = handle_info[4+i*16,16].unpack('LSSLL')
+      info = handle_info[4+i*16,16].unpack('LSSLL')
+
+      # Split out like this to silence Ruby 1.9 warnings
+      pid    = info[0]
+      handle = info[2]
+      access = info[4]
+
       if access & 0xffff == 3
         begin
           process = OpenProcess(0x40,1,pid)
@@ -695,7 +701,7 @@ class File::Stat
 
     return 0
   end
-   
+
   # Returns the file's type (as a numeric).
   #
   def get_file_type(file)
@@ -709,9 +715,9 @@ class File::Stat
         FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
         nil
       )
-      
+
       error_num = GetLastError()
-       
+
       # CreateFile() chokes on locked files
       if error_num == ERROR_SHARING_VIOLATION
         drive  = file[0,4] + 0.chr * 2
@@ -726,22 +732,22 @@ class File::Stat
       if handle == INVALID_HANDLE_VALUE
         raise SystemCallError, get_last_error(error_num)
       end
-      
+
       file_type = GetFileType(handle)
       error_num = GetLastError()
-    ensure     
+    ensure
       CloseHandle(handle)
     end
 
     if file_type == FILE_TYPE_UNKNOWN && error_num != NO_ERROR
       raise SystemCallError, get_last_error(error_num)
     end
-      
+
     file_type
   end
 
   private
-   
+
   # Verifies that a value is either true or false
   def check_bool(val)
     raise TypeError unless val == true || val == false
