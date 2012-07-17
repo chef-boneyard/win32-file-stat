@@ -4,61 +4,68 @@
 # Test case for stat related methods of win32-file. You should use
 # the 'rake test' task to run these tests.
 #####################################################################
-require 'rubygems'
-gem 'test-unit'
-
-require 'test/unit'
+require 'ffi'
+require 'test-unit'
 require 'win32/file/stat'
 
 class TC_Win32_File_Stat < Test::Unit::TestCase
-   include Windows::File
-   include Windows::Process
-   include Windows::Volume
-   extend Windows::Volume
+  extend FFI::Library
+  ffi_lib :kernel32
 
-   def self.startup
-      Dir.chdir(File.expand_path(File.dirname(__FILE__)))
+  attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
 
-      'A'.upto('Z'){ |volume|
-         volume += ":\\"
-         case GetDriveType(volume)
-         when DRIVE_REMOVABLE, DRIVE_CDROM, DRIVE_RAMDISK
-            @@block_dev = volume
-            break
-         end
-      }
+  DRIVE_REMOVABLE = 2
+  DRIVE_CDROM     = 5
+  DRIVE_RAMDISK   = 6
 
-      @@txt_file = 'test_file.txt'
-      @@exe_file = 'test_file.exe'
-      @@sys_file = 'C:/pagefile.sys'
+  def self.startup
+    'A'.upto('Z'){ |volume|
+      volume += ":\\"
+      case GetDriveType(volume)
+      when DRIVE_REMOVABLE, DRIVE_CDROM, DRIVE_RAMDISK
+        @@block_dev = volume
+        break
+      end
+    }
 
-      File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
-      File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
-   end
+    @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
+    @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
+    @@sys_file = File.join(File.expand_path(File.dirname(__FILE__)), 'C:/pagefile.sys')
 
-   def setup
-      @dir  = Dir.pwd
-      @stat = File::Stat.new(@@txt_file)
-      @attr = GetFileAttributes(@@txt_file)
-   end
+    File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
+    File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
+  end
 
-   def test_version
-      assert_equal('1.3.6', File::Stat::VERSION)
-   end
+  def setup
+    @dir  = Dir.pwd
+    @stat = File::Stat.new(@@txt_file)
+    #@attr = GetFileAttributes(@@txt_file)
+  end
 
-   # One or more tests will fail if the archive attribute on @@text_file
-   # is not set.
-   def test_archive
-      assert_respond_to(@stat, :archive?)
-      assert_nothing_raised{ @stat.archive? }
-      assert(@stat.archive?, '=> May fail - ignore')
-   end
+  def test_version
+    assert_equal('1.4.0', File::Stat::VERSION)
+  end
 
-   def test_atime
-      assert_respond_to(@stat, :atime)
-      assert_kind_of(Time, @stat.atime)
-   end
+  test "archive? method basic functionality" do
+    assert_respond_to(@stat, :archive?)
+    assert_nothing_raised{ @stat.archive? }
+  end
 
+  test "archive? method returns a boolean value" do
+    assert_boolean(@stat.archive?)
+  end
+
+  test "atime method basic functionality" do
+    assert_respond_to(@stat, :atime)
+    assert_nothing_raised{ @stat.atime }
+  end
+
+  test "atime method returns expected value" do
+    assert_kind_of(Time, @stat.atime)
+    assert_true(@stat.atime > 0)
+  end
+
+=begin
    def test_blksize
       assert_respond_to(@stat, :blksize)
       assert_equal(4096, @stat.blksize)
@@ -334,21 +341,22 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :zero?)
       assert_equal(false, @stat.zero?)
    end
+=end
 
-   def teardown
-      SetFileAttributes(@@txt_file, @attr) # Set file back to normal
-      @dir  = nil
-      @stat = nil
-      @attr = nil
-   end
+  def teardown
+    #SetFileAttributes(@@txt_file, @attr) # Set file back to normal
+    @dir  = nil
+    @stat = nil
+    @attr = nil
+  end
 
-   def self.shutdown
-      File.delete(@@txt_file) if File.exists?(@@txt_file)
-      File.delete(@@exe_file) if File.exists?(@@exe_file)
+  def self.shutdown
+    File.delete(@@txt_file) if File.exists?(@@txt_file)
+    File.delete(@@exe_file) if File.exists?(@@exe_file)
 
-      @@block_dev = nil
-      @@txt_file  = nil
-      @@exe_file  = nil
-      @@sys_file  = nil
-   end
+    @@block_dev = nil
+    @@txt_file  = nil
+    @@exe_file  = nil
+    @@sys_file  = nil
+  end
 end
