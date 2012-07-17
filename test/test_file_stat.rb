@@ -62,7 +62,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "atime method returns expected value" do
     assert_kind_of(Time, @stat.atime)
-    assert_true(@stat.atime > 0)
+    assert_true(@stat.atime.to_i > 0)
   end
 
 =begin

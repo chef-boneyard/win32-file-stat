@@ -12,6 +12,14 @@ class File::Stat
 
   MAX_PATH = 260
 
+  class LowHigh < FFI::Struct
+    layout(:LowPart, :ulong, :HighPart, :ulong)
+  end
+
+  class ULARGE_INTEGER < FFI::Union
+    layout(:u, LowHigh, :QuadPart, :ulong_long)
+  end
+
   class FILETIME < FFI::Struct
     layout(:dwLowDateTime, :ulong, :dwHighDateTime, :ulong)
   end
@@ -29,9 +37,31 @@ class File::Stat
       :cFileName, [:uint8, MAX_PATH],
       :cAlternateFileName, [:uint8, 14]
     )
-  end
 
-  # p WIN32_FIND_DATA.size
+    # Return the atime as a number
+    def atime
+      date = ULARGE_INTEGER.new
+      date[:u][:LowPart] = self[:ftLastAccessTime][:dwLowDateTime]
+      date[:u][:HighPart] = self[:ftLastAccessTime][:dwHighDateTime]
+      date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
+    end
+
+    # Return the ctime as a number
+    def ctime
+      date = ULARGE_INTEGER.new
+      date[:u][:LowPart] = self[:ftCreationTime][:dwLowDateTime]
+      date[:u][:HighPart] = self[:ftCreationTime][:dwHighDateTime]
+      date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
+    end
+
+    # Return the mtime as a number
+    def mtime
+      date = ULARGE_INTEGER.new
+      date[:u][:LowPart] = self[:ftLastWriteTime][:dwLowDateTime]
+      date[:u][:HighPart] = self[:ftLastWriteTime][:dwHighDateTime]
+      date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
+    end
+  end
 
   INVALID_HANDLE_VALUE = 0xFFFFFFFF
   ERROR_FILE_NOT_FOUND = 2
@@ -58,6 +88,10 @@ class File::Stat
   FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
 
   public
+
+  attr_reader :atime
+  attr_reader :ctime
+  attr_reader :mtime
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -88,16 +122,19 @@ class File::Stat
     end
 
     begin
-      @file = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
-      @attr = data[:dwFileAttributes]
+      @file  = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
+      @attr  = data[:dwFileAttributes]
+      @atime = Time.at(data.atime)
+      @ctime = Time.at(data.ctime)
+      @mtime = Time.at(data.mtime)
+
+      @archive = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
     ensure
       FindClose(handle)
     end
   end
 
   def archive?
-    @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+    @archive
   end
 end
-
-#File::Stat.new('test.txt')
