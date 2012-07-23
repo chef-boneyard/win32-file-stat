@@ -19,6 +19,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   DRIVE_RAMDISK   = 6
 
   def self.startup
+=begin
     'A'.upto('Z'){ |volume|
       volume += ":\\"
       case GetDriveType(volume)
@@ -27,6 +28,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
         break
       end
     }
+=end
 
     @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
@@ -42,9 +44,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     #@attr = GetFileAttributes(@@txt_file)
   end
 
-  def test_version
+  test "version is set to expected value" do
     assert_equal('1.4.0', File::Stat::VERSION)
   end
+
+  #test "constructor does not modify argument" do
+  #  expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
+  #  File::Stat.new(@@txt_file)
+  #  assert_equal(expected, @@txt_file)
+  #end
 
   test "archive? method basic functionality" do
     assert_respond_to(@stat, :archive?)
@@ -65,12 +73,36 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.atime.to_i > 0)
   end
 
+  test "mtime method basic functionality" do
+    assert_respond_to(@stat, :atime)
+    assert_nothing_raised{ @stat.atime }
+  end
+
+  test "mtime method returns expected value" do
+    assert_kind_of(Time, @stat.atime)
+    assert_true(@stat.atime.to_i > 0)
+  end
+
+  test "ctime method basic functionality" do
+    assert_respond_to(@stat, :atime)
+    assert_nothing_raised{ @stat.atime }
+  end
+
+  test "ctime method returns expected value" do
+    assert_kind_of(Time, @stat.atime)
+    assert_true(@stat.atime.to_i > 0)
+  end
+
 =begin
-   def test_blksize
-      assert_respond_to(@stat, :blksize)
-      assert_equal(4096, @stat.blksize)
-      assert_equal(4096, File::Stat.new("C:\\").blksize)
-   end
+  test "blksize basic functionality" do
+    assert_respond_to(@stat, :blksize)
+    assert_kind_of(Fixnum, @stat.blksize)
+  end
+
+  test "blksize returns expected value" do
+    assert_equal(4096, @stat.blksize)
+    assert_equal(4096, File::Stat.new("C:\\").blksize)
+  end
 
    # The block dev test error out if there's no media in it.
    def test_blockdev
@@ -106,11 +138,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :compressed?)
       assert_nothing_raised{ @stat.compressed? }
       assert_equal(false, @stat.compressed?)
-   end
-
-   def test_ctime
-      assert_respond_to(@stat, :ctime)
-      assert_kind_of(Time, @stat.ctime)
    end
 
    # Assumes you've installed on C: drive.
@@ -206,11 +233,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
       SetFileAttributes(@@txt_file, 1) # Set to readonly.
       assert_equal(33060, File::Stat.new(@@txt_file).mode)
-   end
-
-   def test_mtime
-      assert_respond_to(@stat, :mtime)
-      assert_kind_of(Time, @stat.mtime)
    end
 
    def test_nlink

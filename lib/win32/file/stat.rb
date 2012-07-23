@@ -92,6 +92,8 @@ class File::Stat
 
   FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
 
+  undef_method :atime, :ctime, :mtime, :blksize
+
   public
 
   attr_reader :atime
