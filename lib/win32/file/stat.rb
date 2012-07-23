@@ -9,6 +9,11 @@ class File::Stat
   attach_function :FindFirstFile, :FindFirstFileW, [:buffer_in, :pointer], :ulong
   attach_function :FindNextFile, :FindNextFileW, [:buffer_in, :pointer], :bool
   attach_function :FindClose, [:ulong], :bool
+  attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceW, [:buffer_in, :pointer, :pointer, :pointer, :pointer], :bool
+
+  ffi_lib :shlwapi
+
+  attach_function :PathStripToRoot, :PathStripToRootW, [:pointer], :bool
 
   MAX_PATH = 260
 
@@ -92,6 +97,7 @@ class File::Stat
   attr_reader :atime
   attr_reader :ctime
   attr_reader :mtime
+  attr_reader :blksize
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -104,6 +110,8 @@ class File::Stat
     end
 
     file = "\\\\?\\".encode('UTF-16LE') + file
+
+    @blksize = get_blksize(file)
 
     data   = WIN32_FIND_DATA.new
     handle = FindFirstFile(file, data)
@@ -137,4 +145,35 @@ class File::Stat
   def archive?
     @archive
   end
+
+  private
+
+  def get_blksize(path)
+    ptr = FFI::MemoryPointer.from_string(path)
+
+    if PathStripToRoot(ptr)
+      fpath = ptr.read_string_length(path.size * 2).split(0.chr * 2).first
+      fpath = fpath.delete(0.chr).encode('UTF-16LE')
+    else
+      fpath = nil
+    end
+
+    size = nil
+
+    sectors = FFI::MemoryPointer.new(:ulong)
+    bytes   = FFI::MemoryPointer.new(:ulong)
+    free    = FFI::MemoryPointer.new(:ulong)
+    total   = FFI::MemoryPointer.new(:ulong)
+
+    if GetDiskFreeSpace(fpath, sectors, bytes, free, total)
+      size = sectors.read_ulong * bytes.read_ulong
+    end
+
+    size
+  end
+end
+
+if $0 == __FILE__
+  stat = File::Stat.new('stat.orig')
+  p stat.blksize
 end
