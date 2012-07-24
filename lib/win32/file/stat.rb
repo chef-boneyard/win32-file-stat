@@ -6,16 +6,20 @@ class File::Stat
 
   private
 
-  attach_function :FindFirstFile, :FindFirstFileW, [:buffer_in, :pointer], :ulong
-  attach_function :FindNextFile, :FindNextFileW, [:buffer_in, :pointer], :bool
+  attach_function :FindFirstFile, :FindFirstFileA, [:string, :pointer], :ulong
+  attach_function :FindNextFile, :FindNextFileA, [:string, :pointer], :bool
   attach_function :FindClose, [:ulong], :bool
-  attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceW, [:buffer_in, :pointer, :pointer, :pointer, :pointer], :bool
+  attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:string, :pointer, :pointer, :pointer, :pointer], :bool
+  attach_function :GetDriveType, :GetDriveTypeA, [:string], :uint
 
   ffi_lib :shlwapi
 
-  attach_function :PathStripToRoot, :PathStripToRootW, [:pointer], :bool
+  attach_function :PathStripToRoot, :PathStripToRootA, [:pointer], :bool
 
   MAX_PATH = 260
+  DRIVE_REMOVABLE = 2
+  DRIVE_CDROM = 5
+  DRIVE_RAMDISK = 6
 
   class LowHigh < FFI::Struct
     layout(:LowPart, :ulong, :HighPart, :ulong)
@@ -107,13 +111,11 @@ class File::Stat
   def initialize(file)
     file = File.expand_path(file).tr('/', "\\")
 
-    unless file.encoding.to_s == 'UTF-16LE'
-      file = file.concat(0.chr).encode('UTF-16LE')
-    end
+    @blksize  = get_blksize(file)
+    @blockdev = get_blockdev(file)
 
-    file = "\\\\?\\".encode('UTF-16LE') + file
-
-    @blksize = get_blksize(file)
+    # FindFirstFile doesn't like trailing backslashes
+    file.chop! while file[-1].chr == "\\"
 
     data   = WIN32_FIND_DATA.new
     handle = FindFirstFile(file, data)
@@ -148,14 +150,17 @@ class File::Stat
     @archive
   end
 
+  def blockdev?
+    @blockdev
+  end
+
   private
 
   def get_blksize(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
     if PathStripToRoot(ptr)
-      fpath = ptr.read_string_length(path.size * 2).split(0.chr * 2).first
-      fpath = fpath.delete(0.chr).encode('UTF-16LE')
+      fpath = ptr.read_string
     else
       fpath = nil
     end
@@ -173,9 +178,26 @@ class File::Stat
 
     size
   end
+
+  def get_blockdev(path)
+    bool = false
+    blockdevs = [DRIVE_REMOVABLE, DRIVE_CDROM, DRIVE_RAMDISK]
+
+    if blockdevs.include?(GetDriveType(path))
+      bool = true
+    end
+
+    bool
+  end
 end
 
 if $0 == __FILE__
-  stat = File::Stat.new('stat.orig')
+  file = 'stat.orig'
+  file = "C:"
+  stat = File::Stat.new(file)
+  p file
   p stat.blksize
+  p stat.atime
+  p stat.ctime
+  p stat.mtime
 end
