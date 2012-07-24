@@ -11,6 +11,7 @@ class File::Stat
   attach_function :FindClose, [:ulong], :bool
   attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:string, :pointer, :pointer, :pointer, :pointer], :bool
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :uint
+  attach_function :SetErrorMode, [:uint], :uint
 
   ffi_lib :shlwapi
 
@@ -96,7 +97,7 @@ class File::Stat
 
   FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
 
-  undef_method :atime, :ctime, :mtime, :blksize
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?
 
   public
 
@@ -109,40 +110,45 @@ class File::Stat
   VERSION = '1.4.0'
 
   def initialize(file)
-    file = File.expand_path(file).tr('/', "\\")
+    begin
+      original_error_mode = SetErrorMode(1) # Disable popups
+      file = File.expand_path(file).tr('/', "\\")
 
-    @blksize  = get_blksize(file)
-    @blockdev = get_blockdev(file)
+      @blksize  = get_blksize(file)
+      @blockdev = get_blockdev(file)
 
-    # FindFirstFile doesn't like trailing backslashes
-    file.chop! while file[-1].chr == "\\"
+      # FindFirstFile doesn't like trailing backslashes
+      file.chop! while file[-1].chr == "\\"
 
-    data   = WIN32_FIND_DATA.new
-    handle = FindFirstFile(file, data)
-    errno  = FFI.errno
-
-    if handle == INVALID_HANDLE_VALUE
-      raise SystemCallError.new('FindFirstFile', errno)
-    end
-
-    if handle == ERROR_FILE_NOT_FOUND
-      handle = FindNextFile(file, data)
+      data   = WIN32_FIND_DATA.new
+      handle = FindFirstFile(file, data)
+      errno  = FFI.errno
 
       if handle == INVALID_HANDLE_VALUE
-        raise SystemCallError.new('FindNextFile', errno)
+        raise SystemCallError.new('FindFirstFile', errno)
       end
-    end
 
-    begin
-      @file  = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
-      @attr  = data[:dwFileAttributes]
-      @atime = Time.at(data.atime)
-      @ctime = Time.at(data.ctime)
-      @mtime = Time.at(data.mtime)
+      if handle == ERROR_FILE_NOT_FOUND
+        handle = FindNextFile(file, data)
 
-      @archive = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+        if handle == INVALID_HANDLE_VALUE
+          raise SystemCallError.new('FindNextFile', errno)
+        end
+      end
+
+      begin
+        @file  = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
+        @attr  = data[:dwFileAttributes]
+        @atime = Time.at(data.atime)
+        @ctime = Time.at(data.ctime)
+        @mtime = Time.at(data.mtime)
+
+        @archive = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+      ensure
+        FindClose(handle)
+      end
     ensure
-      FindClose(handle)
+      SetErrorMode(original_error_mode)
     end
   end
 
