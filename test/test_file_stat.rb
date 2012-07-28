@@ -117,31 +117,45 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       omit("Skipping because drive is empty or not found")
     end
   end
+
+  test "blocks method basic functionality" do
+    assert_respond_to(@stat, :blocks)
+    assert_kind_of(Fixnum, @stat.blocks)
+  end
+
+  test "blocks method returns the expected value" do
+    assert_equal(1, @stat.blocks)
+  end
+
 =begin
+  test "chardev? basic functionality" do
+    assert_respond_to(@stat, :chardev?)
+    assert_boolean(@stat.chardev?)
+  end
 
-   def test_blocks
-      assert_respond_to(@stat, :blocks)
-      assert_equal(1, @stat.blocks)
-   end
+  test "chardev? returns the expected boolean value" do
+    assert_false(@stat.chardev?)
+    assert_true(File::Stat.new('NUL').chardev?)
+    assert_false(File::Stat.new('C:/').chardev?)
+  end
+=end
 
-   def test_chardev
-      assert_respond_to(@stat, :chardev?)
-      assert_nothing_raised{ File::Stat.new("NUL").chardev? }
-      assert_equal(true, File::Stat.new("NUL").chardev?)
-      assert_equal(false, File::Stat.new("C:\\").chardev?)
-   end
-
+=begin
    def test_comparison
       assert_respond_to(@stat, :<=>)
       assert_nothing_raised{ @stat <=> File::Stat.new(@@exe_file) }
    end
+=end
+  test "compressed? method basic functionality" do
+    assert_respond_to(@stat, :compressed?)
+    assert_nothing_raised{ @stat.compressed? }
+  end
 
-   def test_compressed
-      assert_respond_to(@stat, :compressed?)
-      assert_nothing_raised{ @stat.compressed? }
-      assert_equal(false, @stat.compressed?)
-   end
+  test "compressed? method returns a boolean value" do
+    assert_boolean(@stat.compressed?)
+  end
 
+=begin
    # Assumes you've installed on C: drive.
    def test_dev
       assert_respond_to(@stat, :dev)
@@ -157,13 +171,19 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :dev_minor)
       assert_nil(@stat.dev_minor)
    end
+=end
+  test "directory? method basic functionality" do
+    assert_respond_to(@stat, :directory?)
+    assert_nothing_raised{ @stat.directory? }
+    assert_boolean(@stat.directory?)
+  end
 
-   def test_directory
-      assert_respond_to(@stat, :directory?)
-      assert_equal(false, @stat.directory?)
-      assert_equal(true, File::Stat.new("C:\\").directory?)
-   end
+  test "directory? returns the expected result" do
+    assert_false(@stat.directory?)
+    assert_true(File::Stat.new("C:\\").directory?)
+  end
 
+=begin
    def test_executable
       assert_respond_to(@stat, :executable?)
       assert_equal(false, @stat.executable?)

@@ -6,11 +6,15 @@ class File::Stat
 
   private
 
+  attach_function :CloseHandle, [:ulong], :bool
+  attach_function :CreateFile, :CreateFileA, [:string, :ulong, :ulong, :pointer, :ulong, :ulong, :ulong], :ulong
   attach_function :FindFirstFile, :FindFirstFileA, [:string, :pointer], :ulong
   attach_function :FindNextFile, :FindNextFileA, [:string, :pointer], :bool
   attach_function :FindClose, [:ulong], :bool
   attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:string, :pointer, :pointer, :pointer, :pointer], :bool
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :uint
+  attach_function :GetFileType, [:ulong], :ulong
+  attach_function :QueryDosDevice, :QueryDosDeviceA, [:string, :string, :ulong], :ulong
   attach_function :SetErrorMode, [:uint], :uint
 
   ffi_lib :shlwapi
@@ -21,6 +25,8 @@ class File::Stat
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM = 5
   DRIVE_RAMDISK = 6
+  OPEN_EXISTING = 3
+  FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
   class LowHigh < FFI::Struct
     layout(:LowPart, :ulong, :HighPart, :ulong)
@@ -97,7 +103,7 @@ class File::Stat
 
   FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
 
-  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :directory?
 
   public
 
@@ -105,6 +111,7 @@ class File::Stat
   attr_reader :ctime
   attr_reader :mtime
   attr_reader :blksize
+  attr_reader :blocks
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -116,6 +123,17 @@ class File::Stat
 
       @blksize  = get_blksize(file)
       @blockdev = get_blockdev(file)
+      @size     = File.size(file)
+
+      # Best guess
+      case @blksize
+        when nil
+          @blocks = nil
+        when 0
+          @blocks = 0
+        else
+          @blocks = (@size.to_f / @blksize.to_f).ceil
+      end
 
       # FindFirstFile doesn't like trailing backslashes
       file.chop! while file[-1].chr == "\\"
@@ -143,7 +161,9 @@ class File::Stat
         @ctime = Time.at(data.ctime)
         @mtime = Time.at(data.mtime)
 
-        @archive = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+        @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+        @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
+        @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
       ensure
         FindClose(handle)
       end
@@ -158,6 +178,14 @@ class File::Stat
 
   def blockdev?
     @blockdev
+  end
+
+  def compressed?
+    @compressed
+  end
+
+  def directory?
+    @directory
   end
 
   private
@@ -195,6 +223,50 @@ class File::Stat
 
     bool
   end
+
+=begin
+  def get_file_type(file)
+    begin
+      handle = CreateFile(
+        file,
+        0,
+        0,
+        nil,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
+        nil
+      )
+
+      error_num = GetLastError()
+
+      # CreateFile() chokes on locked files
+      if error_num == ERROR_SHARING_VIOLATION
+        drive  = file[0,4] + 0.chr * 2
+        device = 0.chr * 512
+        QueryDosDeviceW(drive, device, 256)
+        file = device.strip + 0.chr + file[4..-1]
+        handle = get_handle(file)
+      end
+
+      # We raise a SystemCallError explicitly here in order to maintain
+      # compatibility with the FileUtils module.
+      if handle == INVALID_HANDLE_VALUE
+        raise SystemCallError, get_last_error(error_num)
+      end
+
+      file_type = GetFileType(handle)
+      error_num = GetLastError()
+    ensure
+      CloseHandle(handle)
+    end
+
+    if file_type == FILE_TYPE_UNKNOWN && error_num != NO_ERROR
+      raise SystemCallError, get_last_error(error_num)
+    end
+
+    file_type
+  end
+=end
 end
 
 if $0 == __FILE__
