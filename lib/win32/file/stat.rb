@@ -164,6 +164,9 @@ class File::Stat
         @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
         @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
         @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
+        @encrypted  = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
+        @hidden     = @attr & FILE_ATTRIBUTE_HIDDEN > 0
+        @indexed    = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
       ensure
         FindClose(handle)
       end
@@ -187,6 +190,20 @@ class File::Stat
   def directory?
     @directory
   end
+
+  def encrypted?
+    @encrypted
+  end
+
+  def hidden?
+    @hidden
+  end
+
+  def indexed?
+    @indexed
+  end
+
+  alias :content_indexed? :indexed?
 
   private
 

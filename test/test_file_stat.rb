@@ -210,12 +210,19 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_equal('characterSpecial', File::Stat.new('NUL').ftype)
       assert_equal('directory', File::Stat.new(Dir.pwd).ftype)
    end
+=end
 
-   def encrypted
-      assert_respond_to(@stat, :encrypted?)
-      assert_nothing_raised{ @stat.encrypted? }
-   end
+  test "encrypted? method basic functionality" do
+    assert_respond_to(@stat, :encrypted?)
+    assert_nothing_raised{ @stat.encrypted? }
+    assert_boolean(@stat.encrypted?)
+  end
 
+  test "encrypted? returns the expected result" do
+    assert_false(@stat.encrypted?)
+  end
+
+=begin
    def test_gid
       assert_respond_to(@stat, :gid)
       assert_equal(0, @stat.gid)
@@ -224,20 +231,28 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    def test_grpowned
       assert_respond_to(@stat, :grpowned?)
    end
+=end
+  test "hidden? method basic functionality" do
+    assert_respond_to(@stat, :hidden?)
+    assert_nothing_raised{ @stat.hidden? }
+    assert_boolean(@stat.hidden?)
+  end
 
-   def test_hidden
-      assert_respond_to(@stat, :hidden?)
-      assert_nothing_raised{ @stat.hidden? }
-      assert_equal(false, @stat.hidden?)
-   end
+  test "hidden? returns the expected result" do
+    assert_false(@stat.hidden?)
+  end
 
-   def test_indexed
-      assert_respond_to(@stat, :indexed?)
-      assert_respond_to(@stat, :content_indexed?) # alias
-      assert_nothing_raised{ @stat.indexed? }
-      assert(@stat.indexed?)
-   end
+  test "indexed? method basic functionality" do
+    assert_respond_to(@stat, :indexed?)
+    assert_nothing_raised{ @stat.indexed? }
+    assert_true(@stat.indexed?)
+  end
 
+  test "content_indexed? is an alias for indexed?" do
+    assert_alias_method(@stat, :content_indexed?, :indexed?)
+  end
+
+=begin
    def test_ino
       assert_respond_to(@stat, :ino)
       assert_equal(0, @stat.ino)
