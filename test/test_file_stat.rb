@@ -30,7 +30,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
     @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
-    @@sys_file = File.join(File.expand_path(File.dirname(__FILE__)), 'C:/pagefile.sys')
+    @@sys_file = 'C:/pagefile.sys'
 
     File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
     File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
@@ -276,19 +276,26 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :nlink)
       assert_equal(1, @stat.nlink)
    end
+=end
+  
+  test "normal? method basic functionality" do
+    assert_respond_to(@stat, :normal?)
+    assert_nothing_raised{ @stat.normal? }
+  end
 
-   def test_normal
-      assert_respond_to(@stat, :normal?)
-      assert_nothing_raised{ @stat.normal? }
-      assert_equal(false, @stat.normal?)
-   end
+  test "normal? method returns a boolean value" do
+    assert_boolean(@stat.normal?)
+  end
 
-   def test_offline
-      assert_respond_to(@stat, :offline?)
-      assert_nothing_raised{ @stat.offline? }
-      assert_equal(false, @stat.offline?)
-   end
+  test "offline? method basic functionality" do
+    assert_respond_to(@stat, :offline?)
+    assert_nothing_raised{ @stat.offline? }
+  end
 
+  test "offline? method returns a boolean value" do
+    assert_boolean(@stat.offline?)
+  end
+=begin
    def test_pipe
       assert_respond_to(@stat, :pipe?)
       assert_equal(false, @stat.pipe?)

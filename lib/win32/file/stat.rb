@@ -167,6 +167,8 @@ class File::Stat
         @encrypted  = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
         @hidden     = @attr & FILE_ATTRIBUTE_HIDDEN > 0
         @indexed    = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
+        @normal     = @attr & FILE_ATTRIBUTE_NORMAL > 0
+        @offline    = @attr & FILE_ATTRIBUTE_OFFLINE > 0
       ensure
         FindClose(handle)
       end
@@ -204,6 +206,14 @@ class File::Stat
   end
 
   alias :content_indexed? :indexed?
+  
+  def normal?
+    @normal
+  end
+  
+  def offline?
+    @offline
+  end
 
   private
 
