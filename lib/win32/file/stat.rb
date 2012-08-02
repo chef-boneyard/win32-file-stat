@@ -161,14 +161,16 @@ class File::Stat
         @ctime = Time.at(data.ctime)
         @mtime = Time.at(data.mtime)
 
-        @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
-        @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
-        @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
-        @encrypted  = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
-        @hidden     = @attr & FILE_ATTRIBUTE_HIDDEN > 0
-        @indexed    = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
-        @normal     = @attr & FILE_ATTRIBUTE_NORMAL > 0
-        @offline    = @attr & FILE_ATTRIBUTE_OFFLINE > 0
+        @archive        = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+        @compressed     = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
+        @directory      = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
+        @encrypted      = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
+        @hidden         = @attr & FILE_ATTRIBUTE_HIDDEN > 0
+        @indexed        = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
+        @normal         = @attr & FILE_ATTRIBUTE_NORMAL > 0
+        @offline        = @attr & FILE_ATTRIBUTE_OFFLINE > 0
+        @readonly       = @attr & FILE_ATTRIBUTE_READONLY > 0
+        @reparse_point  = @attr & FILE_ATTRIBUTE_REPARSE_POINT > 0
       ensure
         FindClose(handle)
       end
@@ -213,6 +215,14 @@ class File::Stat
   
   def offline?
     @offline
+  end
+  
+  def readonly?
+    @readonly
+  end
+  
+  def reparse_point?
+    @reparse_point
   end
 
   private

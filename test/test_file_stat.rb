@@ -310,19 +310,26 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :readable_real?)
       assert_equal(true, @stat.readable_real?)
    end
+=end
+  test "readonly? method basic functionality" do
+    assert_respond_to(@stat, :readonly?)
+    assert_nothing_raised{ @stat.readonly? }
+  end
 
-   def test_readonly
-      assert_respond_to(@stat, :readonly?)
-      assert_nothing_raised{ @stat.readonly? }
-      assert_equal(false, @stat.readonly?)
-   end
+  test "readonly? method returns a boolean value" do
+    assert_boolean(@stat.readonly?)
+  end
+  
+  test "reparse_point? method basic functionality" do
+    assert_respond_to(@stat, :reparse_point?)
+    assert_nothing_raised{ @stat.reparse_point? }
+  end
 
-   def test_reparse_point
-      assert_respond_to(@stat, :reparse_point?)
-      assert_nothing_raised{ @stat.reparse_point? }
-      assert_equal(false, @stat.reparse_point?)
-   end
+  test "reparse_point? method returns a boolean value" do
+    assert_boolean(@stat.reparse_point?)
+  end
 
+=begin
    # Assumes you've installed on C: drive.
    def test_rdev
       msg = "ignore failure if Ruby is not installed on C: drive"
