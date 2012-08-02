@@ -13,6 +13,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   ffi_lib :kernel32
 
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
+  attach_function :GetFileAttributes, :GetFileAttributesA, [:string], :ulong
+  attach_function :SetFileAttributes, :SetFileAttributesA, [:string, :ulong], :bool
 
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM     = 5
@@ -39,7 +41,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   def setup
     @dir  = Dir.pwd
     @stat = File::Stat.new(@@txt_file)
-    #@attr = GetFileAttributes(@@txt_file)
+    @attr = GetFileAttributes(@@txt_file)
   end
 
   test "version is set to expected value" do
@@ -183,13 +185,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(File::Stat.new("C:\\").directory?)
   end
 
-=begin
-   def test_executable
-      assert_respond_to(@stat, :executable?)
-      assert_equal(false, @stat.executable?)
-      assert_equal(true, File::Stat.new(@@exe_file).executable?)
-   end
+  test "executable? method basic functionality" do
+    assert_respond_to(@stat, :executable?)
+    assert_nothing_raised{ @stat.executable? }
+    assert_boolean(@stat.executable?)
+  end
 
+  test "executable? returns the expected result" do
+    assert_false(@stat.executable?)
+    assert_true(File::Stat.new(@@exe_file).executable?)
+  end
+=begin
    def test_executable_real
       assert_respond_to(@stat, :executable_real?)
       assert_equal(false, @stat.executable_real?)
@@ -414,7 +420,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 =end
 
   def teardown
-    #SetFileAttributes(@@txt_file, @attr) # Set file back to normal
+    SetFileAttributes(@@txt_file, @attr) # Set file back to normal
     @dir  = nil
     @stat = nil
     @attr = nil

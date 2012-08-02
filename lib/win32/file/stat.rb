@@ -11,6 +11,7 @@ class File::Stat
   attach_function :FindFirstFile, :FindFirstFileA, [:string, :pointer], :ulong
   attach_function :FindNextFile, :FindNextFileA, [:string, :pointer], :bool
   attach_function :FindClose, [:ulong], :bool
+  attach_function :GetBinaryType, :GetBinaryTypeA, [:string, :pointer], :bool
   attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:string, :pointer, :pointer, :pointer, :pointer], :bool
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :uint
   attach_function :GetFileType, [:ulong], :ulong
@@ -103,7 +104,7 @@ class File::Stat
 
   FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000
 
-  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :directory?
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :directory?, :executable?
 
   public
 
@@ -137,6 +138,9 @@ class File::Stat
 
       # FindFirstFile doesn't like trailing backslashes
       file.chop! while file[-1].chr == "\\"
+      
+      bin_ptr = FFI::MemoryPointer.new(:ulong)  
+      @executable = GetBinaryType(file, bin_ptr)
 
       data   = WIN32_FIND_DATA.new
       handle = FindFirstFile(file, data)
@@ -200,6 +204,10 @@ class File::Stat
 
   def encrypted?
     @encrypted
+  end
+  
+  def executable?
+    @executable
   end
 
   def hidden?
@@ -330,4 +338,5 @@ if $0 == __FILE__
   p stat.atime
   p stat.ctime
   p stat.mtime
+  p stat.executable?
 end
