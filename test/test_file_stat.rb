@@ -46,11 +46,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal('1.4.0', File::Stat::VERSION)
   end
 
-  #test "constructor does not modify argument" do
-  #  expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
-  #  File::Stat.new(@@txt_file)
-  #  assert_equal(expected, @@txt_file)
-  #end
+  test "constructor does not modify argument" do
+    expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
+    File::Stat.new(@@txt_file)
+    assert_equal(expected, @@txt_file)
+  end
 
   test "archive? method basic functionality" do
     assert_respond_to(@stat, :archive?)
@@ -347,32 +347,27 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_equal(false, @stat.setuid?)
    end
 
-   def test_size
-      assert_respond_to(@stat, :size)
-      assert_equal(21, @stat.size)
-   end
-
    def test_size_system_file
       omit_if(windows_64?, 'skipping system file test on 64-bit OS')
       assert_nothing_raised{ File::Stat.new(@@sys_file).size }
-   end
-
-   def test_size_bool
-      assert_respond_to(@stat, :size?)
-      assert_equal(21, @stat.size?)
    end
 
    def test_socket
       assert_respond_to(@stat, :socket?)
       assert_equal(false, @stat.socket?)
    end
+=end
+  
+  test "sparse? method basic functionality" do
+    assert_respond_to(@stat, :sparse?)
+    assert_nothing_raised{ @stat.sparse? }
+  end
 
-   def test_sparse
-      assert_respond_to(@stat, :sparse?)
-      assert_nothing_raised{ @stat.sparse? }
-      assert_equal(false, @stat.sparse?)
-   end
+  test "sparse? method returns a boolean value" do
+    assert_boolean(@stat.sparse?)
+  end
 
+=begin
    def test_sticky
       assert_respond_to(@stat, :sticky?)
       assert_equal(false, @stat.sticky?)
@@ -382,19 +377,26 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :symlink?)
       assert_equal(false, @stat.symlink?)
    end
+=end
+  
+  test "system? method basic functionality" do
+    assert_respond_to(@stat, :system?)
+    assert_nothing_raised{ @stat.system? }
+  end
 
-   def test_system
-      assert_respond_to(@stat, :system?)
-      assert_nothing_raised{ @stat.system? }
-      assert_equal(false, @stat.system?)
-   end
+  test "system? method returns a boolean value" do
+    assert_boolean(@stat.system?)
+  end
 
-   def test_temporary
-      assert_respond_to(@stat, :temporary?)
-      assert_nothing_raised{ @stat.temporary? }
-      assert_equal(false, @stat.temporary?)
-   end
+  test "temporary? method basic functionality" do
+    assert_respond_to(@stat, :temporary?)
+    assert_nothing_raised{ @stat.temporary? }
+  end
 
+  test "temporary? method returns a boolean value" do
+    assert_boolean(@stat.temporary?)
+  end
+=begin
    def test_uid
       assert_respond_to(@stat, :uid)
       assert_equal(0, @stat.uid)
@@ -408,11 +410,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    def test_writable_real
       assert_respond_to(@stat, :writable_real?)
       assert_equal(true, @stat.writable_real?)
-   end
-
-   def test_zero
-      assert_respond_to(@stat, :zero?)
-      assert_equal(false, @stat.zero?)
    end
 =end
 

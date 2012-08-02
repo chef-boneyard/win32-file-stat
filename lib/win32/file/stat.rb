@@ -171,6 +171,9 @@ class File::Stat
         @offline        = @attr & FILE_ATTRIBUTE_OFFLINE > 0
         @readonly       = @attr & FILE_ATTRIBUTE_READONLY > 0
         @reparse_point  = @attr & FILE_ATTRIBUTE_REPARSE_POINT > 0
+        @sparse         = @attr & FILE_ATTRIBUTE_SPARSE_FILE > 0
+        @system         = @attr & FILE_ATTRIBUTE_SYSTEM > 0
+        @temporary      = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
       ensure
         FindClose(handle)
       end
@@ -223,6 +226,18 @@ class File::Stat
   
   def reparse_point?
     @reparse_point
+  end
+  
+  def sparse?
+    @sparse
+  end
+  
+  def system?
+    @system
+  end
+  
+  def temporary?
+    @temporary
   end
 
   private
