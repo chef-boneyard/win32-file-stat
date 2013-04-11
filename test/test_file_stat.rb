@@ -116,12 +116,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     end
   end
 
-=begin
-   def test_blocks
-      assert_respond_to(@stat, :blocks)
-      assert_equal(1, @stat.blocks)
-   end
+  test "blocks basic functionality" do
+    assert_respond_to(@stat, :blocks)
+    assert_kind_of(Fixnum, @stat.blocks)
+  end
 
+  test "blocks method returns expected value" do
+    assert_equal(1, @stat.blocks)
+  end
+
+=begin
    def test_chardev
       assert_respond_to(@stat, :chardev?)
       assert_nothing_raised{ File::Stat.new("NUL").chardev? }
