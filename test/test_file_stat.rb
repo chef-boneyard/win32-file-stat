@@ -93,7 +93,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.atime.to_i > 0)
   end
 
-=begin
   test "blksize basic functionality" do
     assert_respond_to(@stat, :blksize)
     assert_kind_of(Fixnum, @stat.blksize)
@@ -104,6 +103,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(4096, File::Stat.new("C:\\").blksize)
   end
 
+=begin
    # The block dev test error out if there's no media in it.
    def test_blockdev
       assert_respond_to(@stat, :blockdev?)

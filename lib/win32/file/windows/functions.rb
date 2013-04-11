@@ -19,5 +19,7 @@ module Windows
     ffi_lib :shlwapi
 
     attach_function :PathStripToRoot, :PathStripToRootW, [:ptr], :bool
+    attach_function :PathRemoveBackslash, :PathRemoveBackslashW, [:buffer_out], :string
+    attach_function :PathIsRoot, :PathIsRootW, [:buffer_in], :bool
   end
 end

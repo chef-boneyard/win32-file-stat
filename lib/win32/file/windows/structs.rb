@@ -1,5 +1,7 @@
 require File.join(File.dirname(__FILE__), 'constants')
 
+require 'ffi'
+
 module Windows
   module Structs
     extend FFI::Library

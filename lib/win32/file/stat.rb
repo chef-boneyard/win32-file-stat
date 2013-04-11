@@ -24,7 +24,12 @@ class File::Stat
       file = file.concat(0.chr).encode('UTF-16LE')
     end
 
-    file = "\\\\?\\".encode('UTF-16LE') + file
+    # This seems to cause confusion
+    #file = "\\\\?\\".encode('UTF-16LE') + file
+
+    # Deal with trailing slashes and root paths
+    while (PathRemoveBackslash(file) == ""); end
+    file = file[0..-3] if PathIsRoot(file)
 
     @blksize = get_blksize(file)
 
@@ -89,6 +94,7 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  stat = File::Stat.new('stat.orig')
+  #stat = File::Stat.new('stat.orig')
+  stat = File::Stat.new("C:\\")
   p stat.blksize
 end
