@@ -57,6 +57,11 @@ module Windows
         date[:u][:HighPart] = self[:ftLastWriteTime][:dwHighDateTime]
         date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
       end
+
+      # Return the size as a single number
+      def size
+        (self[:nFileSizeHigh] * (MAXDWORD + 1)) + self[:nFileSizeLow]
+      end
     end
   end
 end

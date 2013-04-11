@@ -1,6 +1,7 @@
 module Windows
   module Constants
     MAX_PATH = 260
+    MAXDWORD = 0xFFFFFFFF
 
     INVALID_HANDLE_VALUE = 0xFFFFFFFF
 
