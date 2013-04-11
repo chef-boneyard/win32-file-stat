@@ -32,5 +32,7 @@ module Windows
     DRIVE_REMOVABLE   = 2
     DRIVE_CDROM       = 5
     DRIVE_RAMDISK     = 6
+
+    NO_ERROR = 0
   end
 end
