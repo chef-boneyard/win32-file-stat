@@ -19,7 +19,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   DRIVE_RAMDISK   = 6
 
   def self.startup
-=begin
     'A'.upto('Z'){ |volume|
       volume += ":\\"
       case GetDriveType(volume)
@@ -28,7 +27,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
         break
       end
     }
-=end
 
     @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
@@ -103,20 +101,22 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(4096, File::Stat.new("C:\\").blksize)
   end
 
+  test "blockdev? basic functionality" do
+    assert_respond_to(@stat, :blockdev?)
+    assert_boolean(@stat.blockdev?)
+  end
+
+  test "blockdev? returns the expected value" do
+    assert_false(@stat.blockdev?)
+
+    begin
+       assert_true(File::Stat.new(@@block_dev).blockdev?)
+    rescue StandardError, SystemCallError
+       omit("Skipping because drive is empty or not found")
+    end
+  end
+
 =begin
-   # The block dev test error out if there's no media in it.
-   def test_blockdev
-      assert_respond_to(@stat, :blockdev?)
-      assert_false(@stat.blockdev?)
-      assert_false(File::Stat.new('NUL').blockdev?)
-
-      begin
-         assert_true(File::Stat.new(@@block_dev).blockdev?)
-      rescue StandardError, SystemCallError
-         omit("Skipping because drive is empty or not found")
-      end
-   end
-
    def test_blocks
       assert_respond_to(@stat, :blocks)
       assert_equal(1, @stat.blocks)

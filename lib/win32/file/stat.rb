@@ -7,7 +7,7 @@ class File::Stat
   include Windows::Structs
   include Windows::Functions
 
-  undef_method :atime, :ctime, :mtime, :blksize
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?
 
   attr_reader :atime
   attr_reader :ctime
@@ -18,23 +18,16 @@ class File::Stat
   VERSION = '1.4.0'
 
   def initialize(file)
-    file = File.expand_path(file).tr('/', "\\")
+    path = File.expand_path(file).tr('/', "\\")
 
-    unless file.encoding.to_s == 'UTF-16LE'
-      file = file.concat(0.chr).encode('UTF-16LE')
-    end
+    # Must call these before chopping trailing backslash
+    @blockdev = get_blockdev(path)
+    @blksize = get_blksize(path)
 
-    # This seems to cause confusion
-    #file = "\\\\?\\".encode('UTF-16LE') + file
-
-    # Deal with trailing slashes and root paths
-    while (PathRemoveBackslash(file) == ""); end
-    file = file[0..-3] if PathIsRoot(file)
-
-    @blksize = get_blksize(file)
+    path.chop! if PathRemoveBackslashA(path) == "\\"
 
     data   = WIN32_FIND_DATA.new
-    handle = FindFirstFile(file, data)
+    handle = FindFirstFileA(path, data)
     errno  = FFI.errno
 
     if handle == INVALID_HANDLE_VALUE
@@ -42,10 +35,10 @@ class File::Stat
     end
 
     if handle == ERROR_FILE_NOT_FOUND
-      handle = FindNextFile(file, data)
+      bool = FindNextFileA(handle, data)
 
-      if handle == INVALID_HANDLE_VALUE
-        raise SystemCallError.new('FindNextFile', errno)
+      if !bool && FFI.errno != ERROR_NO_MORE_FILES
+        raise SystemCallError.new('FindNextFile', FFI.errno)
       end
     end
 
@@ -66,14 +59,34 @@ class File::Stat
     @archive
   end
 
+  def blockdev?
+    @blockdev
+  end
+
   private
+
+  def get_blockdev(path)
+    ptr = FFI::MemoryPointer.from_string(path)
+
+    if PathStripToRootA(ptr)
+      fpath = ptr.read_string
+    else
+      fpath = nil
+    end
+
+    case GetDriveTypeA(fpath)
+      when DRIVE_REMOVABLE, DRIVE_CDROM, DRIVE_RAMDISK
+        true
+      else
+        false
+    end
+  end
 
   def get_blksize(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
-    if PathStripToRoot(ptr)
-      fpath = ptr.read_string_length(path.size * 2).split(0.chr * 2).first
-      fpath = fpath.delete(0.chr).encode('UTF-16LE')
+    if PathStripToRootA(ptr)
+      fpath = ptr.read_string
     else
       fpath = nil
     end
@@ -85,16 +98,10 @@ class File::Stat
     free    = FFI::MemoryPointer.new(:ulong)
     total   = FFI::MemoryPointer.new(:ulong)
 
-    if GetDiskFreeSpace(fpath, sectors, bytes, free, total)
+    if GetDiskFreeSpaceA(fpath, sectors, bytes, free, total)
       size = sectors.read_ulong * bytes.read_ulong
     end
 
     size
   end
-end
-
-if $0 == __FILE__
-  #stat = File::Stat.new('stat.orig')
-  stat = File::Stat.new("C:\\")
-  p stat.blksize
 end

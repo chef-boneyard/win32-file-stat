@@ -8,18 +8,21 @@ module Windows
     typedef :uintptr_t, :handle
     typedef :pointer, :ptr
     typedef :buffer_in, :buf_in
+    typedef :string, :str
 
     ffi_lib :kernel32
 
-    attach_function :FindFirstFile, :FindFirstFileW, [:buf_in, :ptr], :handle
-    attach_function :FindNextFile, :FindNextFileW, [:buf_in, :ptr], :bool
+    attach_function :FindFirstFileA, [:string, :ptr], :handle
+    attach_function :FindNextFileA, [:handle, :ptr], :bool
     attach_function :FindClose, [:handle], :bool
-    attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceW, [:buf_in, :ptr, :ptr, :ptr, :ptr], :bool
+
+    attach_function :GetDiskFreeSpaceA, [:str, :ptr, :ptr, :ptr, :ptr], :bool
+    attach_function :GetDriveTypeA, [:str], :uint
 
     ffi_lib :shlwapi
 
-    attach_function :PathStripToRoot, :PathStripToRootW, [:ptr], :bool
-    attach_function :PathRemoveBackslash, :PathRemoveBackslashW, [:buffer_out], :string
-    attach_function :PathIsRoot, :PathIsRootW, [:buffer_in], :bool
+    attach_function :PathStripToRootA, [:ptr], :bool
+    attach_function :PathRemoveBackslashA, [:buffer_out], :string
+    attach_function :PathIsRootA, [:str], :bool
   end
 end
