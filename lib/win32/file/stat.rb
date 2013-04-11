@@ -7,12 +7,15 @@ class File::Stat
   include Windows::Structs
   include Windows::Functions
 
-  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks
+  undef_method :size
 
   attr_reader :atime
   attr_reader :ctime
   attr_reader :mtime
   attr_reader :blksize
+  attr_reader :blocks
+  attr_reader :size
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -22,8 +25,9 @@ class File::Stat
 
     # Must call these before chopping trailing backslash
     @blockdev = get_blockdev(path)
-    @blksize = get_blksize(path)
+    @blksize  = get_blksize(path)
 
+    # Must remove trailing backslashes for FindFirstFile
     path.chop! if PathRemoveBackslashA(path) == "\\"
 
     data   = WIN32_FIND_DATA.new
@@ -42,12 +46,23 @@ class File::Stat
       end
     end
 
+    # Set blocks equal to size / blksize, rounded up
+    case @blksize
+      when nil
+        @blocks = nil
+      when 0
+        @blocks = 0
+      else
+        @blocks  = (data.size.to_f / @blksize.to_f).ceil
+    end
+
     begin
       @file  = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
       @attr  = data[:dwFileAttributes]
       @atime = Time.at(data.atime)
       @ctime = Time.at(data.ctime)
       @mtime = Time.at(data.mtime)
+      @size  = data.size
 
       @archive = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
     ensure
@@ -104,4 +119,10 @@ class File::Stat
 
     size
   end
+end
+
+if $0 == __FILE__
+  stat = File::Stat.new('stat.orig')
+  p stat.size
+  p stat.blocks
 end
