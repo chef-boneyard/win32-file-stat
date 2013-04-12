@@ -284,19 +284,25 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :nlink)
       assert_equal(1, @stat.nlink)
    end
-
-   def test_normal
-      assert_respond_to(@stat, :normal?)
-      assert_nothing_raised{ @stat.normal? }
-      assert_equal(false, @stat.normal?)
-   end
-
-   def test_offline
-      assert_respond_to(@stat, :offline?)
-      assert_nothing_raised{ @stat.offline? }
-      assert_equal(false, @stat.offline?)
-   end
 =end
+
+  test "normal? basic functionality" do
+    assert_respond_to(@stat, :normal?)
+    assert_boolean(@stat.normal?)
+  end
+
+  test "normal? returns expected value" do
+    assert_false(@stat.normal?)
+  end
+
+  test "offline? method basic functionality" do
+    assert_respond_to(@stat, :offline?)
+    assert_boolean(@stat.offline?)
+  end
+
+  test "offline? method returns expected value" do
+    assert_equal(false, @stat.offline?)
+  end
 
   test "custom pipe? method basic functionality" do
     assert_respond_to(@stat, :pipe?)
