@@ -308,12 +308,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       SetFileAttributes(@@txt_file, 1) # Set to readonly.
       assert_equal(33060, File::Stat.new(@@txt_file).mode)
    end
-
-   def test_nlink
-      assert_respond_to(@stat, :nlink)
-      assert_equal(1, @stat.nlink)
-   end
 =end
+
+  test "nlink basic functionality" do
+    assert_respond_to(@stat, :nlink)
+    assert_kind_of(Fixnum, @stat.nlink)
+  end
+
+  test "nlink returns the expected value" do
+    assert_equal(1, @stat.nlink)
+    assert_equal(1, File::Stat.new(Dir.pwd).nlink)
+    assert_equal(1, File::Stat.new('NUL').nlink)
+  end
 
   test "normal? basic functionality" do
     assert_respond_to(@stat, :normal?)

@@ -9,8 +9,8 @@ class File::Stat
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
-  undef_method :pipe?, :readable?, :readable_real?, :size
-  undef_method :writable?, :writable_real?, :zero?
+  undef_method :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
+  undef_method :socket?, :writable?, :writable_real?, :zero?
 
   attr_reader :atime
   attr_reader :ctime
@@ -18,6 +18,7 @@ class File::Stat
   attr_reader :blksize
   attr_reader :blocks
   attr_reader :ino
+  attr_reader :nlink
   attr_reader :size
 
   # The version of the win32-file-stat library
@@ -35,6 +36,10 @@ class File::Stat
     @chardev  = @filetype == FILE_TYPE_CHAR
     @regular  = @filetype == FILE_TYPE_DISK
     @pipe     = @filetype == FILE_TYPE_PIPE
+
+    # Needs to be called after getting specific file types so we
+    # can short circuit block and character devices.
+    @nlink = get_nlink(path)
 
     # Not supported and/or meaningless
     @dev_major     = nil
@@ -306,9 +311,43 @@ class File::Stat
 
     file_type
   end
+
+  def get_nlink(file)
+    return 1 if @blockdev || @chardev # Would fail otherwise
+
+    begin
+      handle = CreateFileA(
+        file,
+        0,
+        0,
+        nil,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
+        0
+      )
+
+      if handle == INVALID_HANDLE_VALUE
+        raise SystemCallError.new('CreateFile', FFI.errno)
+      end
+
+      hand_info = BY_HANDLE_FILE_INFORMATION.new
+
+      unless GetFileInformationByHandle(handle, hand_info)
+        raise SystemCallError.new('GetFileInformationByHandle', FFI.errno)
+      end
+    ensure
+      CloseHandle(handle) if handle
+    end
+
+    hand_info[:nNumberOfLinks]
+  end
 end
 
 if $0 == __FILE__
+  stat = File::Stat.new(Dir.pwd)
+  p stat.nlink
+  stat = File::Stat.new('stat.orig')
+  p stat.nlink
   stat = File::Stat.new('NUL')
-  p stat.ftype
+  p stat.nlink
 end

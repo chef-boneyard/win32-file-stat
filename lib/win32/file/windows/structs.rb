@@ -18,6 +18,21 @@ module Windows
       layout(:dwLowDateTime, :ulong, :dwHighDateTime, :ulong)
     end
 
+    class BY_HANDLE_FILE_INFORMATION < FFI::Struct
+      layout(
+        :dwFileAttributes, :ulong,
+        :ftCreationTime, FILETIME,
+        :ftLastAccessTime, FILETIME,
+        :ftLastWriteTime, FILETIME,
+        :dwVolumeSerialNumber, :ulong,
+        :nFileSizeHigh, :ulong,
+        :nFileSizeLow, :ulong,
+        :nNumberOfLinks, :ulong,
+        :nFileIndexHigh, :ulong,
+        :nFileIndexLow, :ulong
+      )
+    end
+
     class WIN32_FIND_DATA < FFI::Struct
       include Windows::Constants
 
