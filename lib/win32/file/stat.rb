@@ -9,7 +9,8 @@ class File::Stat
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :directory?, :executable?, :executable_real?, :file?, :ftype
-  undef_method :pipe?, :size
+  undef_method :pipe?, :readable?, :readable_real?, :size
+  undef_method :writable?, :writable_real?
 
   attr_reader :atime
   attr_reader :ctime
@@ -34,6 +35,23 @@ class File::Stat
     @regular  = @filetype == FILE_TYPE_DISK
     @pipe     = @filetype == FILE_TYPE_PIPE
 
+    # Not supported and/or meaningless
+    @dev_major     = nil
+    @dev_minor     = nil
+    @grpowned      = true
+    @owned         = true
+    @readable      = true
+    @readable_real = true
+    @rdev_major    = nil
+    @rdev_minor    = nil
+    @setgid        = false
+    @setuid        = false
+    @sticky        = false
+    @symlink       = false
+    @writable      = true
+    @writable_real = true
+
+    # Binary file if it ends in .exe
     ptr = FFI::MemoryPointer.new(:ulong)
     @executable = GetBinaryTypeA(path, ptr)
 
@@ -115,6 +133,8 @@ class File::Stat
     @executable
   end
 
+  alias executable_real? executable?
+
   def file?
     @regular
   end
@@ -127,6 +147,8 @@ class File::Stat
     @indexed
   end
 
+  alias content_indexed? indexed?
+
   def normal?
     @normal
   end
@@ -135,13 +157,25 @@ class File::Stat
     @offline
   end
 
-  alias content_indexed? indexed?
+  def readable?
+    @readable
+  end
+
+  def readable_real?
+    @readable_real
+  end
 
   def pipe?
     @pipe
   end
 
-  alias executable_real? executable?
+  def writable?
+    @writable
+  end
+
+  def writable_real?
+    @writable_real
+  end
 
   def ftype
     return 'directory' if @directory

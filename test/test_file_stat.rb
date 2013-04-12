@@ -313,17 +313,25 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.pipe?)
   end
 
+  test "readable? basic functionality" do
+    assert_respond_to(@stat, :readable?)
+    assert_boolean(@stat.readable?)
+  end
+
+  test "readable? returns expected value" do
+    assert_equal(true, @stat.readable?)
+  end
+
+  test "readable_real? basic functionality" do
+    assert_respond_to(@stat, :readable_real?)
+    assert_boolean(@stat.readable_real?)
+  end
+
+  test "readable_real? returns expected value" do
+    assert_true(@stat.readable_real?)
+  end
+
 =begin
-   def test_readable
-      assert_respond_to(@stat, :readable?)
-      assert_equal(true, @stat.readable?)
-   end
-
-   def test_readable_real
-      assert_respond_to(@stat, :readable_real?)
-      assert_equal(true, @stat.readable_real?)
-   end
-
    def test_readonly
       assert_respond_to(@stat, :readonly?)
       assert_nothing_raised{ @stat.readonly? }
@@ -405,17 +413,26 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :uid)
       assert_equal(0, @stat.uid)
    end
+=end
+  test "writable? basic functionality" do
+    assert_respond_to(@stat, :writable?)
+    assert_boolean(@stat.writable?)
+  end
 
-   def test_writable
-      assert_respond_to(@stat, :writable?)
-      assert_equal(true, @stat.writable?)
-   end
+  test "writable? returns expected value" do
+    assert_equal(true, @stat.writable?)
+  end
 
-   def test_writable_real
-      assert_respond_to(@stat, :writable_real?)
-      assert_equal(true, @stat.writable_real?)
-   end
+  test "writable_real? basic functionality" do
+    assert_respond_to(@stat, :writable_real?)
+    assert_boolean(@stat.writable_real?)
+  end
 
+  test "writable_real? returns expected value" do
+    assert_true(@stat.writable_real?)
+  end
+
+=begin
    def test_zero
       assert_respond_to(@stat, :zero?)
       assert_equal(false, @stat.zero?)
