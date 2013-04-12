@@ -8,7 +8,8 @@ class File::Stat
   include Windows::Functions
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :directory?, :executable?, :executable_real?, :ftype, :size
+  undef_method :directory?, :executable?, :executable_real?, :file?, :ftype
+  undef_method :pipe?, :size
 
   attr_reader :atime
   attr_reader :ctime
@@ -27,7 +28,11 @@ class File::Stat
     @blockdev = get_blockdev(path)
     @blksize  = get_blksize(path)
     @filetype = get_filetype(path)
+
+    # Get specific file types
     @chardev  = @filetype == FILE_TYPE_CHAR
+    @regular  = @filetype == FILE_TYPE_DISK
+    @pipe     = @filetype == FILE_TYPE_PIPE
 
     ptr = FFI::MemoryPointer.new(:ulong)
     @executable = GetBinaryTypeA(path, ptr)
@@ -99,6 +104,14 @@ class File::Stat
 
   def executable?
     @executable
+  end
+
+  def file?
+    @regular
+  end
+
+  def pipe?
+    @pipe
   end
 
   alias executable_real? executable?

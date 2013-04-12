@@ -194,15 +194,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_alias_method(@stat, :executable?, :executable_real?)
   end
 
-=begin
-   def test_file
-      assert_respond_to(@stat, :file?)
-      assert_equal(true, @stat.file?)
-      assert_equal(true, File::Stat.new(@@exe_file).file?)
-      assert_equal(true, File::Stat.new(Dir.pwd).file?)
-      assert_equal(false, File::Stat.new('NUL').file?)
-   end
-=end
+  test "custom file? method basic functionality" do
+    assert_respond_to(@stat, :file?)
+    assert_boolean(@stat.file?)
+  end
+
+  test "custom file? method returns expected value" do
+    assert_true(@stat.file?)
+    assert_true(File::Stat.new(@@exe_file).file?)
+    assert_true(File::Stat.new(Dir.pwd).file?)
+    assert_false(File::Stat.new('NUL').file?)
+  end
 
   test "custom ftype method basic functionality" do
     assert_respond_to(@stat, :ftype)
@@ -278,12 +280,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_nothing_raised{ @stat.offline? }
       assert_equal(false, @stat.offline?)
    end
+=end
 
-   def test_pipe
-      assert_respond_to(@stat, :pipe?)
-      assert_equal(false, @stat.pipe?)
-   end
+  test "custom pipe? method basic functionality" do
+    assert_respond_to(@stat, :pipe?)
+    assert_boolean(@stat.pipe?)
+  end
 
+  test "custom pipe? method returns expected value" do
+    assert_false(@stat.pipe?)
+  end
+
+=begin
    def test_readable
       assert_respond_to(@stat, :readable?)
       assert_equal(true, @stat.readable?)
