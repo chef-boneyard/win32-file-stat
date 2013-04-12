@@ -246,14 +246,21 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.hidden?)
   end
 
-=begin
-   def test_indexed
-      assert_respond_to(@stat, :indexed?)
-      assert_respond_to(@stat, :content_indexed?) # alias
-      assert_nothing_raised{ @stat.indexed? }
-      assert(@stat.indexed?)
-   end
+  test "indexed? basic functionality" do
+    assert_respond_to(@stat, :indexed?)
+    assert_boolean(@stat.indexed?)
+  end
 
+  test "indexed? returns expected value" do
+    assert_true(@stat.indexed?)
+  end
+
+  test "content_indexed? is an alias for indexed?" do
+    assert_respond_to(@stat, :content_indexed?)
+    assert_alias_method(@stat, :indexed?, :content_indexed?)
+  end
+
+=begin
    def test_ino
       assert_respond_to(@stat, :ino)
       assert_equal(0, @stat.ino)
