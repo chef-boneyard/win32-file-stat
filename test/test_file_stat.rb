@@ -125,14 +125,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(1, @stat.blocks)
   end
 
-=begin
-   def test_chardev
-      assert_respond_to(@stat, :chardev?)
-      assert_nothing_raised{ File::Stat.new("NUL").chardev? }
-      assert_equal(true, File::Stat.new("NUL").chardev?)
-      assert_equal(false, File::Stat.new("C:\\").chardev?)
-   end
+  test "custom chardev? basic functionality" do
+    assert_respond_to(@stat, :chardev?)
+    assert_boolean(@stat.chardev?)
+  end
 
+  test "custom chardev? returns expected value" do
+    assert_true(File::Stat.new("NUL").chardev?)
+    assert_false(File::Stat.new("C:\\").chardev?)
+  end
+
+=begin
    def test_comparison
       assert_respond_to(@stat, :<=>)
       assert_nothing_raised{ @stat <=> File::Stat.new(@@exe_file) }

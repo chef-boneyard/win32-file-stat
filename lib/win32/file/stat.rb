@@ -7,7 +7,7 @@ class File::Stat
   include Windows::Structs
   include Windows::Functions
 
-  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks
+  undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :directory?, :ftype, :size
 
   attr_reader :atime
@@ -15,7 +15,6 @@ class File::Stat
   attr_reader :mtime
   attr_reader :blksize
   attr_reader :blocks
-  attr_reader :ftype
   attr_reader :size
 
   # The version of the win32-file-stat library
@@ -28,6 +27,7 @@ class File::Stat
     @blockdev = get_blockdev(path)
     @blksize  = get_blksize(path)
     @filetype = get_filetype(path)
+    @chardev  = @filetype == FILE_TYPE_CHAR
 
     # Must remove trailing backslashes for FindFirstFile
     path.chop! if PathRemoveBackslashA(path) == "\\"
@@ -79,6 +79,10 @@ class File::Stat
 
   def blockdev?
     @blockdev
+  end
+
+  def chardev?
+    @chardev
   end
 
   def directory?
