@@ -260,12 +260,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_alias_method(@stat, :indexed?, :content_indexed?)
   end
 
-=begin
-   def test_ino
-      assert_respond_to(@stat, :ino)
-      assert_equal(0, @stat.ino)
-   end
+  test "ino method basic functionality" do
+    assert_respond_to(@stat, :ino)
+    assert_kind_of(Fixnum, @stat.ino)
+  end
 
+  test "ino method always returns 0" do
+    assert_equal(0, @stat.ino)
+  end
+
+=begin
    def test_inspect
       assert_respond_to(@stat, :inspect)
    end

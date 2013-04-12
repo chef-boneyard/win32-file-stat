@@ -8,7 +8,7 @@ class File::Stat
   include Windows::Functions
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :directory?, :executable?, :executable_real?, :file?, :ftype
+  undef_method :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
   undef_method :pipe?, :readable?, :readable_real?, :size
   undef_method :writable?, :writable_real?, :zero?
 
@@ -17,6 +17,7 @@ class File::Stat
   attr_reader :mtime
   attr_reader :blksize
   attr_reader :blocks
+  attr_reader :ino
   attr_reader :size
 
   # The version of the win32-file-stat library
@@ -39,6 +40,7 @@ class File::Stat
     @dev_major     = nil
     @dev_minor     = nil
     @grpowned      = true
+    @ino           = 0
     @owned         = true
     @readable      = true
     @readable_real = true
