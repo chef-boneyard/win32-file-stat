@@ -66,8 +66,9 @@ class File::Stat
       @mtime = Time.at(data.mtime)
       @size  = data.size
 
-      @archive   = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
-      @directory = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
+      @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+      @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
+      @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
     ensure
       FindClose(handle)
     end
@@ -83,6 +84,10 @@ class File::Stat
 
   def chardev?
     @chardev
+  end
+
+  def compressed?
+    @compressed
   end
 
   def directory?

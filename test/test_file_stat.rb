@@ -140,13 +140,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :<=>)
       assert_nothing_raised{ @stat <=> File::Stat.new(@@exe_file) }
    end
+=end
 
-   def test_compressed
-      assert_respond_to(@stat, :compressed?)
-      assert_nothing_raised{ @stat.compressed? }
-      assert_equal(false, @stat.compressed?)
-   end
+  test "compressed? basic functionality" do
+    assert_respond_to(@stat, :compressed?)
+    assert_boolean(@stat.compressed?)
+  end
 
+  test "compressed? returns expected value" do
+    assert_false(@stat.compressed?)
+  end
+
+=begin
    # Assumes you've installed on C: drive.
    def test_dev
       assert_respond_to(@stat, :dev)
