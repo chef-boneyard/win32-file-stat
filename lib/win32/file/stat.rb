@@ -102,6 +102,7 @@ class File::Stat
       @indexed    = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
       @normal     = @attr & FILE_ATTRIBUTE_NORMAL > 0
       @offline    = @attr & FILE_ATTRIBUTE_OFFLINE > 0
+      @readonly   = @attr & FILE_ATTRIBUTE_READONLY > 0
     ensure
       FindClose(handle)
     end
@@ -166,6 +167,12 @@ class File::Stat
   def readable_real?
     @readable_real
   end
+
+  def readonly?
+    @readonly
+  end
+
+  alias read_only? readonly?
 
   def pipe?
     @pipe

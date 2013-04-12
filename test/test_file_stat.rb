@@ -335,13 +335,21 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.readable_real?)
   end
 
-=begin
-   def test_readonly
-      assert_respond_to(@stat, :readonly?)
-      assert_nothing_raised{ @stat.readonly? }
-      assert_equal(false, @stat.readonly?)
-   end
+  test "readonly? basic functionality" do
+    assert_respond_to(@stat, :readonly?)
+    assert_boolean(@stat.readonly?)
+  end
 
+  test "readonly? returns the expected value" do
+    assert_false(@stat.readonly?)
+  end
+
+  test "read_only? is an alias for readonly?" do
+    assert_respond_to(@stat, :read_only?)
+    assert_alias_method(@stat, :readonly?, :read_only?)
+  end
+
+=begin
    def test_reparse_point
       assert_respond_to(@stat, :reparse_point?)
       assert_nothing_raised{ @stat.reparse_point? }
