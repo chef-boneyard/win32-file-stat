@@ -8,7 +8,7 @@ class File::Stat
   include Windows::Functions
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :directory?, :ftype, :size
+  undef_method :directory?, :executable?, :ftype, :size
 
   attr_reader :atime
   attr_reader :ctime
@@ -28,6 +28,9 @@ class File::Stat
     @blksize  = get_blksize(path)
     @filetype = get_filetype(path)
     @chardev  = @filetype == FILE_TYPE_CHAR
+
+    ptr = FFI::MemoryPointer.new(:ulong)
+    @executable = GetBinaryTypeA(path, ptr)
 
     # Must remove trailing backslashes for FindFirstFile
     path.chop! if PathRemoveBackslashA(path) == "\\"
@@ -92,6 +95,10 @@ class File::Stat
 
   def directory?
     @directory
+  end
+
+  def executable?
+    @executable
   end
 
   def ftype

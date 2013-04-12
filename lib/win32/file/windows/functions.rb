@@ -18,6 +18,7 @@ module Windows
     attach_function :FindNextFileA, [:handle, :ptr], :bool
     attach_function :FindClose, [:handle], :bool
 
+    attach_function :GetBinaryTypeA, [:string, :ptr], :bool
     attach_function :GetDiskFreeSpaceA, [:str, :ptr, :ptr, :ptr, :ptr], :bool
     attach_function :GetDriveTypeA, [:str], :uint
     attach_function :GetFileType, [:handle], :dword

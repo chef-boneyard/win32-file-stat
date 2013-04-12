@@ -179,13 +179,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(File::Stat.new("C:\\").directory?)
   end
 
-=begin
-   def test_executable
-      assert_respond_to(@stat, :executable?)
-      assert_equal(false, @stat.executable?)
-      assert_equal(true, File::Stat.new(@@exe_file).executable?)
-   end
+  test "custom executable? method basic functionality" do
+    assert_respond_to(@stat, :executable?)
+    assert_boolean(@stat.executable?)
+  end
 
+  test "custom executable? returns expected value" do
+    assert_false(@stat.executable?)
+    assert_true(File::Stat.new(@@exe_file).executable?)
+  end
+
+=begin
    def test_executable_real
       assert_respond_to(@stat, :executable_real?)
       assert_equal(false, @stat.executable_real?)
