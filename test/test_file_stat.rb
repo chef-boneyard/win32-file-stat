@@ -13,10 +13,33 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   ffi_lib :kernel32
 
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
+  attach_function :IsWow64Process, [:uintptr_t, :pointer], :bool
+  attach_function :GetCurrentProcess, [], :uintptr_t
 
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM     = 5
   DRIVE_RAMDISK   = 6
+
+  # Helper method to determine if you're on a 64 bit version of Windows
+  def windows_64?
+    bool = false
+
+    if respond_to?(:IsWow64Process, true)
+      pbool = FFI::MemoryPointer.new(:int)
+
+      # The IsWow64Process function will return false for a 64 bit process,
+      # so we check using both the address size and IsWow64Process.
+      if FFI::Platform::ADDRESS_SIZE == 64
+        bool = true
+      else
+        if IsWow64Process(GetCurrentProcess(), pbool)
+          bool = true if pbool.read_int == 1
+        end
+      end
+    end
+
+    bool
+  end
 
   def self.startup
     'A'.upto('Z'){ |volume|
@@ -39,6 +62,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   def setup
     @dir  = Dir.pwd
     @stat = File::Stat.new(@@txt_file)
+    @temp = 'win32_file_stat.tmp'
+    File.open(@temp, 'w'){}
     #@attr = GetFileAttributes(@@txt_file)
   end
 
@@ -375,22 +400,39 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :setuid?)
       assert_equal(false, @stat.setuid?)
    end
+=end
 
-   def test_size
-      assert_respond_to(@stat, :size)
-      assert_equal(21, @stat.size)
-   end
+  test "custom size method basic functionality" do
+    assert_respond_to(@stat, :size)
+    assert_kind_of(Numeric, @stat.size)
+  end
 
-   def test_size_system_file
-      omit_if(windows_64?, 'skipping system file test on 64-bit OS')
-      assert_nothing_raised{ File::Stat.new(@@sys_file).size }
-   end
+  test "custom size method returns expected value" do
+    assert_equal(21, @stat.size)
+    @stat = File::Stat.new(@temp)
+    assert_equal(0, @stat.size)
+  end
 
-   def test_size_bool
-      assert_respond_to(@stat, :size?)
-      assert_equal(21, @stat.size?)
-   end
+  test "custom size method works on system files" do
+    omit_if(windows_64?, 'skipping system file test on 64-bit OS')
+    assert_nothing_raised{ File::Stat.new(@@sys_file).size }
+  end
 
+  test "size? method basic functionality" do
+    assert_respond_to(@stat, :size?)
+    assert_kind_of(Numeric, @stat.size)
+  end
+
+  test "size? method returns integer if size greater than zero" do
+    assert_equal(21, @stat.size?)
+  end
+
+  test "size? method returns nil if size is zero" do
+    @stat = File::Stat.new(@temp)
+    assert_nil(@stat.size?)
+  end
+
+=begin
    def test_socket
       assert_respond_to(@stat, :socket?)
       assert_equal(false, @stat.socket?)
@@ -462,13 +504,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "zero? method returns expected value" do
     assert_false(@stat.zero?)
+    @stat = File::Stat.new(@temp)
+    assert_true(@stat.zero?)
   end
 
   def teardown
     #SetFileAttributes(@@txt_file, @attr) # Set file back to normal
+    File.delete(@temp) if File.exists?(@temp)
     @dir  = nil
     @stat = nil
     @attr = nil
+    @temp = nil
   end
 
   def self.shutdown

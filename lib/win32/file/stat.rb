@@ -186,6 +186,10 @@ class File::Stat
     @reparse_point
   end
 
+  def size?
+    @size > 0 ? @size : nil
+  end
+
   def system?
     @system
   end
