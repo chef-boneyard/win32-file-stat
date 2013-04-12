@@ -432,12 +432,14 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.writable_real?)
   end
 
-=begin
-   def test_zero
-      assert_respond_to(@stat, :zero?)
-      assert_equal(false, @stat.zero?)
-   end
-=end
+  test "zero? method basic functionality" do
+    assert_respond_to(@stat, :zero?)
+    assert_boolean(@stat.zero?)
+  end
+
+  test "zero? method returns expected value" do
+    assert_false(@stat.zero?)
+  end
 
   def teardown
     #SetFileAttributes(@@txt_file, @attr) # Set file back to normal

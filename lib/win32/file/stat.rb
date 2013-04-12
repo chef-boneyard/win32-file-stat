@@ -10,7 +10,7 @@ class File::Stat
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :directory?, :executable?, :executable_real?, :file?, :ftype
   undef_method :pipe?, :readable?, :readable_real?, :size
-  undef_method :writable?, :writable_real?
+  undef_method :writable?, :writable_real?, :zero?
 
   attr_reader :atime
   attr_reader :ctime
@@ -167,6 +167,10 @@ class File::Stat
 
   def pipe?
     @pipe
+  end
+
+  def zero?
+    @size == 0
   end
 
   def writable?
