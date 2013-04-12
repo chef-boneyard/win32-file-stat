@@ -189,13 +189,12 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(File::Stat.new(@@exe_file).executable?)
   end
 
-=begin
-   def test_executable_real
-      assert_respond_to(@stat, :executable_real?)
-      assert_equal(false, @stat.executable_real?)
-      assert_equal(true, File::Stat.new(@@exe_file).executable_real?)
-   end
+  test "executable_real? is an alias for executable?" do
+    assert_respond_to(@stat, :executable_real?)
+    assert_alias_method(@stat, :executable?, :executable_real?)
+  end
 
+=begin
    def test_file
       assert_respond_to(@stat, :file?)
       assert_equal(true, @stat.file?)

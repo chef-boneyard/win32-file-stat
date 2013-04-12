@@ -8,7 +8,7 @@ class File::Stat
   include Windows::Functions
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :directory?, :executable?, :ftype, :size
+  undef_method :directory?, :executable?, :executable_real?, :ftype, :size
 
   attr_reader :atime
   attr_reader :ctime
@@ -100,6 +100,8 @@ class File::Stat
   def executable?
     @executable
   end
+
+  alias executable_real? executable?
 
   def ftype
     return 'directory' if @directory
