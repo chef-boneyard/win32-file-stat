@@ -34,5 +34,8 @@ module Windows
     DRIVE_RAMDISK     = 6
 
     NO_ERROR = 0
+
+    OPEN_EXISTING = 3
+    FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
   end
 end

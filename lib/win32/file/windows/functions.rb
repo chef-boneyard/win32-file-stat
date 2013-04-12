@@ -12,6 +12,8 @@ module Windows
 
     ffi_lib :kernel32
 
+    attach_function :CloseHandle, [:handle], :bool
+    attach_function :CreateFileA, [:str, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
     attach_function :FindFirstFileA, [:string, :ptr], :handle
     attach_function :FindNextFileA, [:handle, :ptr], :bool
     attach_function :FindClose, [:handle], :bool

@@ -159,13 +159,19 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :dev_minor)
       assert_nil(@stat.dev_minor)
    end
+=end
 
-   def test_directory
-      assert_respond_to(@stat, :directory?)
-      assert_equal(false, @stat.directory?)
-      assert_equal(true, File::Stat.new("C:\\").directory?)
-   end
+  test "custom directory? method basic functionality" do
+    assert_respond_to(@stat, :directory?)
+    assert_boolean(@stat.directory?)
+  end
 
+  test "custom directory? method returns expected value" do
+    assert_false(@stat.directory?)
+    assert_true(File::Stat.new("C:\\").directory?)
+  end
+
+=begin
    def test_executable
       assert_respond_to(@stat, :executable?)
       assert_equal(false, @stat.executable?)
@@ -185,14 +191,20 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_equal(true, File::Stat.new(Dir.pwd).file?)
       assert_equal(false, File::Stat.new('NUL').file?)
    end
+=end
 
-   def test_ftype
-      assert_respond_to(@stat, :ftype)
-      assert_equal('file', @stat.ftype)
-      assert_equal('characterSpecial', File::Stat.new('NUL').ftype)
-      assert_equal('directory', File::Stat.new(Dir.pwd).ftype)
-   end
+  test "custom ftype method basic functionality" do
+    assert_respond_to(@stat, :ftype)
+    assert_kind_of(String, @stat.ftype)
+  end
 
+  test "custom ftype method returns expected value" do
+    assert_equal('file', @stat.ftype)
+    assert_equal('characterSpecial', File::Stat.new('NUL').ftype)
+    assert_equal('directory', File::Stat.new(Dir.pwd).ftype)
+  end
+
+=begin
    def encrypted
       assert_respond_to(@stat, :encrypted?)
       assert_nothing_raised{ @stat.encrypted? }
