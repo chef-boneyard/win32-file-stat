@@ -77,6 +77,8 @@ class File::Stat
       @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
       @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
       @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
+      @encrypted  = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
+      @hidden     = @attr & FILE_ATTRIBUTE_HIDDEN > 0
     ensure
       FindClose(handle)
     end
@@ -102,12 +104,20 @@ class File::Stat
     @directory
   end
 
+  def encrypted?
+    @encrypted
+  end
+
   def executable?
     @executable
   end
 
   def file?
     @regular
+  end
+
+  def hidden?
+    @hidden
   end
 
   def pipe?

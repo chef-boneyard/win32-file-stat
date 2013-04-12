@@ -46,11 +46,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal('1.4.0', File::Stat::VERSION)
   end
 
-  #test "constructor does not modify argument" do
-  #  expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
-  #  File::Stat.new(@@txt_file)
-  #  assert_equal(expected, @@txt_file)
-  #end
+  test "constructor does not modify argument" do
+    expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
+    File::Stat.new(@@txt_file)
+    assert_equal(expected, @@txt_file)
+  end
 
   test "archive? method basic functionality" do
     assert_respond_to(@stat, :archive?)
@@ -217,12 +217,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal('directory', File::Stat.new(Dir.pwd).ftype)
   end
 
-=begin
-   def encrypted
-      assert_respond_to(@stat, :encrypted?)
-      assert_nothing_raised{ @stat.encrypted? }
-   end
+  test "encrypted? basic functionality" do
+    assert_respond_to(@stat, :encrypted?)
+    assert_boolean(@stat.encrypted?)
+  end
 
+  test "encrypted? returns the expected value" do
+    assert_false(@stat.encrypted?)
+  end
+
+=begin
    def test_gid
       assert_respond_to(@stat, :gid)
       assert_equal(0, @stat.gid)
@@ -231,13 +235,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    def test_grpowned
       assert_respond_to(@stat, :grpowned?)
    end
+=end
 
-   def test_hidden
-      assert_respond_to(@stat, :hidden?)
-      assert_nothing_raised{ @stat.hidden? }
-      assert_equal(false, @stat.hidden?)
-   end
+  test "hidden? basic functionality" do
+    assert_respond_to(@stat, :hidden?)
+    assert_boolean(@stat.hidden?)
+  end
 
+  test "hidden? returns expected value" do
+    assert_false(@stat.hidden?)
+  end
+
+=begin
    def test_indexed
       assert_respond_to(@stat, :indexed?)
       assert_respond_to(@stat, :content_indexed?) # alias
