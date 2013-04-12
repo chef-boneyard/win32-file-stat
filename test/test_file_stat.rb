@@ -342,6 +342,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.pipe?)
   end
 
+  test "socket? is an alias for pipe?" do
+    assert_respond_to(@stat, :socket?)
+    assert_alias_method(@stat, :socket?, :pipe?)
+  end
+
   test "readable? basic functionality" do
     assert_respond_to(@stat, :readable?)
     assert_boolean(@stat.readable?)
@@ -432,17 +437,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_nil(@stat.size?)
   end
 
-=begin
-   def test_socket
-      assert_respond_to(@stat, :socket?)
-      assert_equal(false, @stat.socket?)
-   end
+  test "sparse? basic fucntionality" do
+    assert_respond_to(@stat, :sparse?)
+    assert_boolean(@stat.sparse?)
+  end
 
-   def test_sparse
-      assert_respond_to(@stat, :sparse?)
-      assert_nothing_raised{ @stat.sparse? }
-      assert_equal(false, @stat.sparse?)
-   end
+  test "sparse? returns expected value" do
+    assert_false(@stat.sparse?)
+  end
+=begin
 
    def test_sticky
       assert_respond_to(@stat, :sticky?)

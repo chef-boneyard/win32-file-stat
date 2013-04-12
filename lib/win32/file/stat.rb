@@ -182,12 +182,18 @@ class File::Stat
     @pipe
   end
 
+  alias socket? pipe?
+
   def reparse_point?
     @reparse_point
   end
 
   def size?
     @size > 0 ? @size : nil
+  end
+
+  def sparse?
+    @sparse
   end
 
   def system?
