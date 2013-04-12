@@ -349,13 +349,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_alias_method(@stat, :readonly?, :read_only?)
   end
 
-=begin
-   def test_reparse_point
-      assert_respond_to(@stat, :reparse_point?)
-      assert_nothing_raised{ @stat.reparse_point? }
-      assert_equal(false, @stat.reparse_point?)
-   end
+  test "reparse_point? basic functionality" do
+    assert_respond_to(@stat, :reparse_point?)
+    assert_boolean(@stat.reparse_point?)
+  end
 
+  test "reparse_point returns expected value" do
+    assert_false(@stat.reparse_point?)
+  end
+
+=begin
    # Assumes you've installed on C: drive.
    def test_rdev
       msg = "ignore failure if Ruby is not installed on C: drive"
@@ -408,19 +411,27 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
       assert_respond_to(@stat, :symlink?)
       assert_equal(false, @stat.symlink?)
    end
+=end
 
-   def test_system
-      assert_respond_to(@stat, :system?)
-      assert_nothing_raised{ @stat.system? }
-      assert_equal(false, @stat.system?)
-   end
+  test "system? basic functionality" do
+    assert_respond_to(@stat, :system?)
+    assert_boolean(@stat.system?)
+  end
 
-   def test_temporary
-      assert_respond_to(@stat, :temporary?)
-      assert_nothing_raised{ @stat.temporary? }
-      assert_equal(false, @stat.temporary?)
-   end
+  test "system? returns expected value" do
+    assert_false(@stat.system?)
+  end
 
+  test "temporary? basic functionality" do
+    assert_respond_to(@stat, :temporary?)
+    assert_boolean(@stat.temporary?)
+  end
+
+  test "temporary? returns expected value" do
+    assert_false(@stat.temporary?)
+  end
+
+=begin
    def test_uid
       assert_respond_to(@stat, :uid)
       assert_equal(0, @stat.uid)

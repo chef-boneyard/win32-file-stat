@@ -94,15 +94,19 @@ class File::Stat
       @mtime = Time.at(data.mtime)
       @size  = data.size
 
-      @archive    = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
-      @compressed = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
-      @directory  = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
-      @encrypted  = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
-      @hidden     = @attr & FILE_ATTRIBUTE_HIDDEN > 0
-      @indexed    = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
-      @normal     = @attr & FILE_ATTRIBUTE_NORMAL > 0
-      @offline    = @attr & FILE_ATTRIBUTE_OFFLINE > 0
-      @readonly   = @attr & FILE_ATTRIBUTE_READONLY > 0
+      @archive       = @attr & FILE_ATTRIBUTE_ARCHIVE > 0
+      @compressed    = @attr & FILE_ATTRIBUTE_COMPRESSED > 0
+      @directory     = @attr & FILE_ATTRIBUTE_DIRECTORY > 0
+      @encrypted     = @attr & FILE_ATTRIBUTE_ENCRYPTED > 0
+      @hidden        = @attr & FILE_ATTRIBUTE_HIDDEN > 0
+      @indexed       = @attr & ~FILE_ATTRIBUTE_NOT_CONTENT_INDEXED > 0
+      @normal        = @attr & FILE_ATTRIBUTE_NORMAL > 0
+      @offline       = @attr & FILE_ATTRIBUTE_OFFLINE > 0
+      @readonly      = @attr & FILE_ATTRIBUTE_READONLY > 0
+      @reparse_point = @attr & FILE_ATTRIBUTE_REPARSE_POINT > 0
+      @sparse        = @attr & FILE_ATTRIBUTE_SPARSE_FILE > 0
+      @system        = @attr & FILE_ATTRIBUTE_SYSTEM > 0
+      @temporary     = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
     ensure
       FindClose(handle)
     end
@@ -178,8 +182,16 @@ class File::Stat
     @pipe
   end
 
-  def zero?
-    @size == 0
+  def reparse_point?
+    @reparse_point
+  end
+
+  def system?
+    @system
+  end
+
+  def temporary?
+    @temporary
   end
 
   def writable?
@@ -188,6 +200,10 @@ class File::Stat
 
   def writable_real?
     @writable_real
+  end
+
+  def zero?
+    @size == 0
   end
 
   def ftype
