@@ -8,7 +8,7 @@ class File::Stat
   include Windows::Functions
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
+  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
   undef_method :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
   undef_method :socket?, :writable?, :writable_real?, :zero?
 
@@ -25,7 +25,8 @@ class File::Stat
   VERSION = '1.4.0'
 
   def initialize(file)
-    path = file.tr('/', "\\")
+    path  = file.tr('/', "\\")
+    @path = path
 
     # Must call these before chopping trailing backslash
     @blockdev = get_blockdev(path)
@@ -131,6 +132,20 @@ class File::Stat
 
   def compressed?
     @compressed
+  end
+
+  def dev
+    letter = nil
+    path = File.expand_path(@path)
+
+    unless PathIsUNCA(path)
+      ptr = FFI::MemoryPointer.from_string(path)
+      if PathStripToRootA(ptr)
+        letter = ptr.read_string
+      end
+    end
+
+    letter
   end
 
   def directory?
@@ -286,8 +301,8 @@ class File::Stat
     begin
       handle = CreateFileA(
         file,
-        0,
-        0,
+        GENERIC_READ,
+        FILE_SHARE_READ,
         nil,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
@@ -318,8 +333,8 @@ class File::Stat
     begin
       handle = CreateFileA(
         file,
-        0,
-        0,
+        GENERIC_READ,
+        FILE_SHARE_READ,
         nil,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
@@ -344,10 +359,8 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  stat = File::Stat.new(Dir.pwd)
-  p stat.nlink
-  stat = File::Stat.new('stat.orig')
-  p stat.nlink
-  stat = File::Stat.new('NUL')
-  p stat.nlink
+  #stat = File::Stat.new(Dir.pwd)
+  #p stat.dev
+  stat = File::Stat.new("//?//SCIPIO/Users")
+  p stat.dev
 end
