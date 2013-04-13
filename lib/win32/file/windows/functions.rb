@@ -11,6 +11,7 @@ module Windows
     typedef :string, :str
 
     ffi_lib :kernel32
+    ffi_convention :stdcall
 
     attach_function :CloseHandle, [:handle], :bool
     attach_function :CreateFileA, [:str, :dword, :dword, :ptr, :dword, :dword, :handle], :handle

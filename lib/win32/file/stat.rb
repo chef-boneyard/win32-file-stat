@@ -305,7 +305,7 @@ class File::Stat
         FILE_SHARE_READ,
         nil,
         OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
         0
       )
 
@@ -337,7 +337,7 @@ class File::Stat
         FILE_SHARE_READ,
         nil,
         OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS, # Need this for directories
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
         0
       )
 
@@ -356,11 +356,4 @@ class File::Stat
 
     hand_info[:nNumberOfLinks]
   end
-end
-
-if $0 == __FILE__
-  #stat = File::Stat.new(Dir.pwd)
-  #p stat.dev
-  stat = File::Stat.new("//?//SCIPIO/Users")
-  p stat.dev
 end
