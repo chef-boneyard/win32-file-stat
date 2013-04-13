@@ -35,7 +35,10 @@ module Windows
 
     NO_ERROR = 0
 
-    OPEN_EXISTING = 3
+    OPEN_EXISTING   = 3
+    GENERIC_READ    = 0x80000000
+    FILE_SHARE_READ = 1
+
     FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
   end
 end
