@@ -28,72 +28,73 @@ class File::Stat
     path  = file.tr('/', "\\")
     @path = path
 
-    # Must call these before chopping trailing backslash
-    @blockdev = get_blockdev(path)
-    @blksize  = get_blksize(path)
-    @filetype = get_filetype(path)
-
-    # Get specific file types
-    @chardev  = @filetype == FILE_TYPE_CHAR
-    @regular  = @filetype == FILE_TYPE_DISK
-    @pipe     = @filetype == FILE_TYPE_PIPE
-
-    # Needs to be called after getting specific file types so we
-    # can short circuit block and character devices.
-    @nlink = get_nlink(path)
-
-    # Not supported and/or meaningless
-    @dev_major     = nil
-    @dev_minor     = nil
-    @grpowned      = true
-    @ino           = 0
-    @owned         = true
-    @readable      = true
-    @readable_real = true
-    @rdev_major    = nil
-    @rdev_minor    = nil
-    @setgid        = false
-    @setuid        = false
-    @sticky        = false
-    @symlink       = false
-    @writable      = true
-    @writable_real = true
-
-    # Binary file if it ends in .exe
-    ptr = FFI::MemoryPointer.new(:ulong)
-    @executable = GetBinaryTypeA(path, ptr)
-
-    # Must remove trailing backslashes for FindFirstFile
-    path.chop! if PathRemoveBackslashA(path) == "\\"
-
-    data   = WIN32_FIND_DATA.new
-    handle = FindFirstFileA(path, data)
-    errno  = FFI.errno
-
-    if handle == INVALID_HANDLE_VALUE
-      raise SystemCallError.new('FindFirstFile', errno)
-    end
-
-    if handle == ERROR_FILE_NOT_FOUND
-      bool = FindNextFileA(handle, data)
-
-      if !bool && FFI.errno != ERROR_NO_MORE_FILES
-        raise SystemCallError.new('FindNextFile', FFI.errno)
-      end
-    end
-
-    # Set blocks equal to size / blksize, rounded up
-    case @blksize
-      when nil
-        @blocks = nil
-      when 0
-        @blocks = 0
-      else
-        @blocks  = (data.size.to_f / @blksize.to_f).ceil
-    end
-
     begin
-      @file  = data[:cFileName].to_ptr.read_string(file.size).delete(0.chr)
+      # The handle returned will be used by other functions
+      handle = get_handle(path)
+
+      @blockdev = get_blockdev(path)
+      @blksize  = get_blksize(path)
+      @filetype = get_filetype(handle)
+
+      # Get specific file types
+      @chardev  = @filetype == FILE_TYPE_CHAR
+      @regular  = @filetype == FILE_TYPE_DISK
+      @pipe     = @filetype == FILE_TYPE_PIPE
+
+      if @blockdev || @chardev || @pipe
+        data = WIN32_FIND_DATA.new
+        CloseHandle(handle)
+
+        handle = FindFirstFileA(path, data)
+
+        if handle == INVALID_HANDLE_VALUE
+          raise SystemCallError.new('FindFirstFile', FFI.errno)
+        end
+
+        FindClose(handle)
+
+        @nlink = 0 # Hm, not sure
+      else
+        data = BY_HANDLE_FILE_INFORMATION.new
+
+        unless GetFileInformationByHandle(handle, data)
+          raise SystemCallError.new('GetFileInformationByHandle', FFI.errno)
+        end
+
+        @nlink = data[:nNumberOfLinks]
+      end
+
+      # Not supported and/or meaningless
+      @dev_major     = nil
+      @dev_minor     = nil
+      @grpowned      = true
+      @ino           = 0
+      @owned         = true
+      @readable      = true
+      @readable_real = true
+      @rdev_major    = nil
+      @rdev_minor    = nil
+      @setgid        = false
+      @setuid        = false
+      @sticky        = false
+      @symlink       = false
+      @writable      = true
+      @writable_real = true
+
+      # Binary file if it ends in .exe
+      ptr = FFI::MemoryPointer.new(:ulong)
+      @executable = GetBinaryTypeA(path, ptr)
+
+      # Set blocks equal to size / blksize, rounded up
+      case @blksize
+        when nil
+          @blocks = nil
+        when 0
+          @blocks = 0
+        else
+          @blocks  = (data.size.to_f / @blksize.to_f).ceil
+      end
+
       @attr  = data[:dwFileAttributes]
       @atime = Time.at(data.atime)
       @ctime = Time.at(data.ctime)
@@ -114,7 +115,7 @@ class File::Stat
       @system        = @attr & FILE_ATTRIBUTE_SYSTEM > 0
       @temporary     = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
     ensure
-      FindClose(handle)
+      CloseHandle(handle) if handle
     end
   end
 
@@ -297,63 +298,39 @@ class File::Stat
     size
   end
 
-  def get_filetype(file)
-    begin
-      handle = CreateFileA(
-        file,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        nil,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-        0
-      )
+  def get_handle(path)
+    handle = CreateFileA(
+      path,
+      GENERIC_READ,
+      FILE_SHARE_READ,
+      nil,
+      OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+      0
+    )
 
-      # TODO: Deal with locked files
+    if handle == INVALID_HANDLE_VALUE
+      raise SystemCallError.new('CreateFile', FFI.errno)
+    end
 
-      if handle == INVALID_HANDLE_VALUE
-        raise SystemCallError.new('CreateFile', FFI.errno)
-      end
+    handle
+  end
 
-      file_type = GetFileType(handle)
+  def get_filetype(handle)
+    file_type = GetFileType(handle)
 
-      if file_type == FILE_TYPE_UNKNOWN && FFI.errno != NO_ERROR
-        raise SystemCallError.new('GetFileType', FFI.errno)
-      end
-    ensure
-      CloseHandle(handle) if handle
+    if file_type == FILE_TYPE_UNKNOWN && FFI.errno != NO_ERROR
+      raise SystemCallError.new('GetFileType', FFI.errno)
     end
 
     file_type
   end
+end
 
-  def get_nlink(file)
-    return 1 if @blockdev || @chardev # Would fail otherwise
-
-    begin
-      handle = CreateFileA(
-        file,
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        nil,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-        0
-      )
-
-      if handle == INVALID_HANDLE_VALUE
-        raise SystemCallError.new('CreateFile', FFI.errno)
-      end
-
-      hand_info = BY_HANDLE_FILE_INFORMATION.new
-
-      unless GetFileInformationByHandle(handle, hand_info)
-        raise SystemCallError.new('GetFileInformationByHandle', FFI.errno)
-      end
-    ensure
-      CloseHandle(handle) if handle
-    end
-
-    hand_info[:nNumberOfLinks]
-  end
+if $0 == __FILE__
+  File::Stat.new(Dir.pwd)
+  File::Stat.new('stat.orig')
+  File::Stat.new('//scipio/users')
+  File::Stat.new('//scipio/users/djberge/Documents/command.txt')
+  File::Stat.new('NUL')
 end
