@@ -176,13 +176,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.compressed?)
   end
 
-=begin
-   # Assumes you've installed on C: drive.
-   def test_dev
-      assert_respond_to(@stat, :dev)
-      assert_equal('C:', @stat.dev)
-   end
+  # Assumes you've installed on C: drive.
+  test "dev basic functionality" do
+    assert_respond_to(@stat, :dev)
+    assert_kind_of([NilClass, String], @stat.dev)
+  end
 
+  test "dev returns expected value" do
+    assert_equal('C:', @stat.dev.upcase)
+    #assert_nil(File::Stat.new("//scipio/users").dev)
+  end
+
+=begin
    def test_dev_major
       assert_respond_to(@stat, :dev_major)
       assert_nil(@stat.dev_major)
