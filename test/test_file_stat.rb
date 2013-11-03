@@ -199,17 +199,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_nil(File::Stat.new("//scipio/users").dev)
   end
 
-=begin
-   def test_dev_major
-      assert_respond_to(@stat, :dev_major)
-      assert_nil(@stat.dev_major)
-   end
+  test "dev_major defined and always returns nil" do
+    assert_respond_to(@stat, :dev_major)
+    assert_nil(@stat.dev_major)
+  end
 
-   def test_dev_minor
-      assert_respond_to(@stat, :dev_minor)
-      assert_nil(@stat.dev_minor)
-   end
-=end
+  test "dev_minor defined and always returns nil" do
+    assert_respond_to(@stat, :dev_minor)
+    assert_nil(@stat.dev_minor)
+  end
 
   test "custom directory? method basic functionality" do
     assert_respond_to(@stat, :directory?)
@@ -268,11 +266,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.encrypted?)
   end
 
+  test "gid defined and always returns zero" do
+    assert_respond_to(@stat, :gid)
+    assert_equal(0, @stat.gid)
+  end
 =begin
-   def test_gid
-      assert_respond_to(@stat, :gid)
-      assert_equal(0, @stat.gid)
-   end
 
    def test_grpowned
       assert_respond_to(@stat, :grpowned?)
