@@ -53,7 +53,7 @@ class File::Stat
 
         FindClose(handle)
 
-        @nlink = 0 # Hm, not sure
+        @nlink = 1 # Default from stat/wstat function.
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
