@@ -10,9 +10,9 @@ class File::Stat
   include Comparable
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :gid
-  undef_method :ino, :mode, :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
-  undef_method :socket?, :writable?, :writable_real?, :zero?
+  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype
+  undef_method :gid, :ino, :mode, :nlink, :pipe?, :readable?, :rdev, :readable_real?
+  undef_method :size, :size?, :socket?, :uid, :writable?, :writable_real?, :zero?
   undef_method :<=>, :inspect, :pretty_print
 
   attr_reader :atime
@@ -25,6 +25,7 @@ class File::Stat
   attr_reader :mode
   attr_reader :nlink
   attr_reader :size
+  attr_reader :uid
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -84,6 +85,7 @@ class File::Stat
       @setuid        = false
       @sticky        = false
       @symlink       = false # TODO: Make this work
+      @uid           = 0     # TODO: Make this work
       @writable      = true  # TODO: Make this work
       @writable_real = true  # TODO: Same as writeable
 
@@ -137,7 +139,7 @@ class File::Stat
     @mtime.to_i <=> other.mtime.to_i
   end
 
-  ## Miscellaneous
+  ## Other
 
   def archive?
     @archive
@@ -156,17 +158,17 @@ class File::Stat
   end
 
   def dev
-    letter = nil
-    path = File.expand_path(@path)
+    value = nil
+    path  = File.expand_path(@path)
 
     unless PathIsUNCA(path)
       ptr = FFI::MemoryPointer.from_string(path)
       if PathStripToRootA(ptr)
-        letter = ptr.read_string
+        value = ptr.read_string
       end
     end
 
-    letter
+    value
   end
 
   def directory?
@@ -205,10 +207,15 @@ class File::Stat
     @offline
   end
 
+  def rdev
+    PathGetDriveNumberA(File.expand_path(@path))
+  end
+
   def readable?
     @readable
   end
 
+  # TODO: Make this an alias for readable?
   def readable_real?
     @readable_real
   end
@@ -410,5 +417,9 @@ if $0 == __FILE__
   #File::Stat.new('//scipio/users')
   #File::Stat.new('//scipio/users/djberge/Documents/command.txt')
   #File::Stat.new('NUL')
-  puts File::Stat.new(Dir.pwd).mode
+  puts File::Stat.new(Dir.pwd).inspect
+  #p File::Stat.new(Dir.pwd).dev
+  #p File::Stat.new(Dir.pwd).rdev
+  #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').dev
+  #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').rdev
 end
