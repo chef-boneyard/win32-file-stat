@@ -16,7 +16,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
   attach_function :IsWow64Process, [:uintptr_t, :pointer], :bool
   attach_function :GetCurrentProcess, [], :uintptr_t
-  #attach_function :GetFileAttributes, :GetFileAttributesA, [:string], :ulong
+  attach_function :GetFileAttributes, :GetFileAttributesA, [:string], :ulong
+  attach_function :SetFileAttributes, :SetFileAttributesA, [:string, :ulong], :bool
 
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM     = 5
@@ -66,7 +67,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     @stat = File::Stat.new(@@txt_file)
     @temp = 'win32_file_stat.tmp'
     File.open(@temp, 'w'){}
-    #@attr = GetFileAttributes(@@txt_file)
+    @attr = GetFileAttributes(@@txt_file)
   end
 
   test "version is set to expected value" do
@@ -270,12 +271,10 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_respond_to(@stat, :gid)
     assert_equal(0, @stat.gid)
   end
-=begin
 
-   def test_grpowned
-      assert_respond_to(@stat, :grpowned?)
-   end
-=end
+  test "grpowned? defined and always returns true" do
+    assert_respond_to(@stat, :grpowned?)
+  end
 
   test "hidden? basic functionality" do
     assert_respond_to(@stat, :hidden?)
@@ -305,7 +304,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_kind_of(Fixnum, @stat.ino)
   end
 
-  test "ino method always returns 0" do
+  test "ino method defined and always returns zero" do
     assert_equal(0, @stat.ino)
   end
 
@@ -313,17 +312,23 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    def test_inspect
       assert_respond_to(@stat, :inspect)
    end
-
-   def test_mode
-      assert_respond_to(@stat, :mode)
-      assert_equal(33188, File::Stat.new(@@txt_file).mode)
-      assert_equal(33261, File::Stat.new(@@exe_file).mode)
-      assert_equal(16877, File::Stat.new(@dir).mode)
-
-      SetFileAttributes(@@txt_file, 1) # Set to readonly.
-      assert_equal(33060, File::Stat.new(@@txt_file).mode)
-   end
 =end
+
+  test "custom mode method basic functionality" do
+    assert_respond_to(@stat, :mode)
+    assert_kind_of(Fixnum, @stat.mode)
+  end
+
+  test "custom mode method returns the expected value" do
+    assert_equal(33188, File::Stat.new(@@txt_file).mode)
+    assert_equal(33261, File::Stat.new(@@exe_file).mode)
+    assert_equal(16877, File::Stat.new(@dir).mode)
+  end
+
+  test "custom mode method returns expected value for readonly file" do
+    SetFileAttributes(@@txt_file, 1) # Set to readonly.
+    assert_equal(33060, File::Stat.new(@@txt_file).mode)
+  end
 
   test "nlink basic functionality" do
     assert_respond_to(@stat, :nlink)
@@ -533,7 +538,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   def teardown
-    #SetFileAttributes(@@txt_file, @attr) # Set file back to normal
+    SetFileAttributes(@@txt_file, @attr) # Set file back to normal
     File.delete(@temp) if File.exists?(@temp)
     @dir  = nil
     @stat = nil
