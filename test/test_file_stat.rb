@@ -4,6 +4,7 @@
 # Test case for stat related methods of win32-file. You should use
 # the 'rake test' task to run these tests.
 #####################################################################
+require 'etc'
 require 'ffi'
 require 'test-unit'
 require 'win32/file/stat'
@@ -15,6 +16,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
   attach_function :IsWow64Process, [:uintptr_t, :pointer], :bool
   attach_function :GetCurrentProcess, [], :uintptr_t
+  #attach_function :GetFileAttributes, :GetFileAttributesA, [:string], :ulong
 
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM     = 5
@@ -107,13 +109,13 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "ctime method basic functionality" do
-    assert_respond_to(@stat, :atime)
-    assert_nothing_raised{ @stat.atime }
+    assert_respond_to(@stat, :ctime)
+    assert_nothing_raised{ @stat.ctime }
   end
 
   test "ctime method returns expected value" do
-    assert_kind_of(Time, @stat.atime)
-    assert_true(@stat.atime.to_i > 0)
+    assert_kind_of(Time, @stat.ctime)
+    assert_true(@stat.ctime.to_i > 0)
   end
 
   test "blksize basic functionality" do
@@ -131,9 +133,12 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_boolean(@stat.blockdev?)
   end
 
-  test "blockdev? returns the expected value" do
+  test "blockdev? returns the expected value for a non-block device" do
     assert_false(@stat.blockdev?)
+    assert_false(File::Stat.new('NUL').blockdev?)
+  end
 
+  test "blockdev? returns the expected value for a block device" do
     begin
       assert_true(File::Stat.new(@@block_dev).blockdev?)
     rescue StandardError, SystemCallError
@@ -160,12 +165,14 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(File::Stat.new("C:\\").chardev?)
   end
 
-=begin
-   def test_comparison
-      assert_respond_to(@stat, :<=>)
-      assert_nothing_raised{ @stat <=> File::Stat.new(@@exe_file) }
-   end
-=end
+  test "custom comparison method basic functionality" do
+    assert_respond_to(@stat, :<=>)
+    assert_nothing_raised{ @stat <=> File::Stat.new(@@exe_file) }
+  end
+
+  test "custom comparison method works as expected" do
+    assert_equal(0, @stat <=> @stat)
+  end
 
   test "compressed? basic functionality" do
     assert_respond_to(@stat, :compressed?)
@@ -176,15 +183,20 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.compressed?)
   end
 
-  # Assumes you've installed on C: drive.
   test "dev basic functionality" do
     assert_respond_to(@stat, :dev)
     assert_kind_of([NilClass, String], @stat.dev)
   end
 
-  test "dev returns expected value" do
+  # Assumes you've installed on C: drive. TODO: Don't be lazy, check root.
+  test "dev returns expected value on non-unc path" do
     assert_equal('C:', @stat.dev.upcase)
-    #assert_nil(File::Stat.new("//scipio/users").dev)
+  end
+
+  # Not sure how to test properly in a generic way, but works on my local network
+  test "dev returns expected value on unc path" do
+    omit_unless(Etc.getlogin == "djberge")
+    assert_nil(File::Stat.new("//scipio/users").dev)
   end
 
 =begin
