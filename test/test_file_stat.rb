@@ -100,13 +100,13 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "mtime method basic functionality" do
-    assert_respond_to(@stat, :atime)
-    assert_nothing_raised{ @stat.atime }
+    assert_respond_to(@stat, :mtime)
+    assert_nothing_raised{ @stat.mtime }
   end
 
   test "mtime method returns expected value" do
-    assert_kind_of(Time, @stat.atime)
-    assert_true(@stat.atime.to_i > 0)
+    assert_kind_of(Time, @stat.mtime)
+    assert_true(@stat.mtime.to_i > 0)
   end
 
   test "ctime method basic functionality" do
@@ -156,12 +156,12 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(1, @stat.blocks)
   end
 
-  test "custom chardev? basic functionality" do
+  test "chardev? custom method basic functionality" do
     assert_respond_to(@stat, :chardev?)
     assert_boolean(@stat.chardev?)
   end
 
-  test "custom chardev? returns expected value" do
+  test "chardev? custom method returns expected value" do
     assert_true(File::Stat.new("NUL").chardev?)
     assert_false(File::Stat.new("C:\\").chardev?)
   end
@@ -189,9 +189,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_kind_of([NilClass, String], @stat.dev)
   end
 
-  # Assumes you've installed on C: drive. TODO: Don't be lazy, check root.
   test "dev returns expected value on non-unc path" do
-    assert_equal('C:', @stat.dev.upcase)
+    assert_equal('C:', File::Stat.new("C:\\Program Files").dev.upcase)
   end
 
   # Not sure how to test properly in a generic way, but works on my local network
@@ -210,22 +209,22 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_nil(@stat.dev_minor)
   end
 
-  test "custom directory? method basic functionality" do
+  test "directory? custom method basic functionality" do
     assert_respond_to(@stat, :directory?)
     assert_boolean(@stat.directory?)
   end
 
-  test "custom directory? method returns expected value" do
+  test "directory? custom method returns expected value" do
     assert_false(@stat.directory?)
     assert_true(File::Stat.new("C:\\").directory?)
   end
 
-  test "custom executable? method basic functionality" do
+  test "executable? custom method basic functionality" do
     assert_respond_to(@stat, :executable?)
     assert_boolean(@stat.executable?)
   end
 
-  test "custom executable? returns expected value" do
+  test "executable? custom method returns expected value" do
     assert_false(@stat.executable?)
     assert_true(File::Stat.new(@@exe_file).executable?)
   end
@@ -235,24 +234,24 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_alias_method(@stat, :executable?, :executable_real?)
   end
 
-  test "custom file? method basic functionality" do
+  test "file? custom method basic functionality" do
     assert_respond_to(@stat, :file?)
     assert_boolean(@stat.file?)
   end
 
-  test "custom file? method returns expected value" do
+  test "file? custom method returns expected value" do
     assert_true(@stat.file?)
     assert_true(File::Stat.new(@@exe_file).file?)
     assert_true(File::Stat.new(Dir.pwd).file?)
     assert_false(File::Stat.new('NUL').file?)
   end
 
-  test "custom ftype method basic functionality" do
+  test "ftype custom method basic functionality" do
     assert_respond_to(@stat, :ftype)
     assert_kind_of(String, @stat.ftype)
   end
 
-  test "custom ftype method returns expected value" do
+  test "ftype custom method returns expected value" do
     assert_equal('file', @stat.ftype)
     assert_equal('characterSpecial', File::Stat.new('NUL').ftype)
     assert_equal('directory', File::Stat.new(Dir.pwd).ftype)
@@ -308,24 +307,28 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(0, @stat.ino)
   end
 
-=begin
-   def test_inspect
-      assert_respond_to(@stat, :inspect)
-   end
-=end
+  test "inspect custom method basic functionality" do
+    assert_respond_to(@stat, :inspect)
+  end
 
-  test "custom mode method basic functionality" do
+  test "inspect string contains expected values" do
+    assert_match('File::Stat', @stat.inspect)
+    assert_match('compressed', @stat.inspect)
+    assert_match('normal', @stat.inspect)
+  end
+
+  test "mode custom method basic functionality" do
     assert_respond_to(@stat, :mode)
     assert_kind_of(Fixnum, @stat.mode)
   end
 
-  test "custom mode method returns the expected value" do
+  test "mode custom method returns the expected value" do
     assert_equal(33188, File::Stat.new(@@txt_file).mode)
     assert_equal(33261, File::Stat.new(@@exe_file).mode)
     assert_equal(16877, File::Stat.new(@dir).mode)
   end
 
-  test "custom mode method returns expected value for readonly file" do
+  test "mode custom method returns expected value for readonly file" do
     SetFileAttributes(@@txt_file, 1) # Set to readonly.
     assert_equal(33060, File::Stat.new(@@txt_file).mode)
   end
@@ -356,15 +359,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "offline? method returns expected value" do
-    assert_equal(false, @stat.offline?)
+    assert_false(@stat.offline?)
   end
 
-  test "custom pipe? method basic functionality" do
+  test "pipe? custom method basic functionality" do
     assert_respond_to(@stat, :pipe?)
     assert_boolean(@stat.pipe?)
   end
 
-  test "custom pipe? method returns expected value" do
+  test "pipe? custom method returns expected value" do
     assert_false(@stat.pipe?)
   end
 
@@ -379,7 +382,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "readable? returns expected value" do
-    assert_equal(true, @stat.readable?)
+    assert_true(@stat.readable?)
   end
 
   test "readable_real? basic functionality" do
@@ -398,6 +401,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "readonly? returns the expected value" do
     assert_false(@stat.readonly?)
+    SetFileAttributes(@@txt_file, 1)
+    assert_true(File::Stat.new(@@txt_file).readonly?)
   end
 
   test "read_only? is an alias for readonly?" do
@@ -414,14 +419,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.reparse_point?)
   end
 
-=begin
-   # Assumes you've installed on C: drive.
-   def test_rdev
-      msg = "ignore failure if Ruby is not installed on C: drive"
-      assert_respond_to(@stat, :rdev)
-      assert_equal(2, @stat.rdev, msg)
-   end
+  test "rdev custom method basic functionality" do
+    assert_respond_to(@stat, :rdev)
+    assert_kind_of(Fixnum, @stat.rdev)
+  end
 
+  test "rdev custom method returns expected value" do
+    assert_equal(2, File::Stat.new("C:\\").rdev)
+    assert_equal(-1, File::Stat.new("NUL").rdev)
+  end
+
+=begin
    def test_setgid
       assert_respond_to(@stat, :setgid?)
       assert_equal(false, @stat.setgid?)
@@ -433,18 +441,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
    end
 =end
 
-  test "custom size method basic functionality" do
+  test "size custom method basic functionality" do
     assert_respond_to(@stat, :size)
     assert_kind_of(Numeric, @stat.size)
   end
 
-  test "custom size method returns expected value" do
+  test "size custom method returns expected value" do
     assert_equal(21, @stat.size)
     @stat = File::Stat.new(@temp)
     assert_equal(0, @stat.size)
   end
 
-  test "custom size method works on system files" do
+  test "size custom method works on system files" do
     omit_if(windows_64?, 'skipping system file test on 64-bit OS')
     assert_nothing_raised{ File::Stat.new(@@sys_file).size }
   end
