@@ -27,7 +27,7 @@ module Windows
 
     ffi_lib :shlwapi
 
-
+    attach_function :PathGetDriveNumberA, [:str], :int
     attach_function :PathIsRootA, [:str], :bool
     attach_function :PathIsUNCA, [:str], :bool
     attach_function :PathRemoveBackslashA, [:buffer_out], :string
