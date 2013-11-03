@@ -6,11 +6,13 @@ class File::Stat
   include Windows::Constants
   include Windows::Structs
   include Windows::Functions
+  include Comparable
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
   undef_method :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
   undef_method :socket?, :writable?, :writable_real?, :zero?
+  undef_method :<=>
 
   attr_reader :atime
   attr_reader :ctime
@@ -64,22 +66,22 @@ class File::Stat
         @nlink = data[:nNumberOfLinks]
       end
 
-      # Not supported and/or meaningless
+      # Not supported and/or meaningless on MS Windows
       @dev_major     = nil
       @dev_minor     = nil
-      @grpowned      = true
+      @grpowned      = true # TODO: Make this work
       @ino           = 0
-      @owned         = true
-      @readable      = true
-      @readable_real = true
+      @owned         = true # TODO: Make this work
+      @readable      = true # TODO: Make this work
+      @readable_real = true # TODO: Same as readable
       @rdev_major    = nil
       @rdev_minor    = nil
       @setgid        = false
       @setuid        = false
       @sticky        = false
-      @symlink       = false
-      @writable      = true
-      @writable_real = true
+      @symlink       = false # TODO: Make this work
+      @writable      = true  # TODO: Make this work
+      @writable_real = true  # TODO: Same as writeable
 
       # Binary file if it ends in .exe
       ptr = FFI::MemoryPointer.new(:ulong)
@@ -118,6 +120,18 @@ class File::Stat
       CloseHandle(handle) if handle
     end
   end
+
+  ## Comparable
+
+  # Compares two File::Stat objects using modification time.
+  #--
+  # Custom implementation necessary since we altered File::Stat.
+  #
+  def <=>(other)
+    @mtime.to_i <=> other.mtime.to_i
+  end
+
+  ## Miscellaneous
 
   def archive?
     @archive
