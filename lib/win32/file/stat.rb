@@ -9,8 +9,8 @@ class File::Stat
   include Comparable
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :ino
-  undef_method :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
+  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :gid
+  undef_method :ino, :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
   undef_method :socket?, :writable?, :writable_real?, :zero?
   undef_method :<=>
 
@@ -19,6 +19,7 @@ class File::Stat
   attr_reader :mtime
   attr_reader :blksize
   attr_reader :blocks
+  attr_reader :gid
   attr_reader :ino
   attr_reader :nlink
   attr_reader :size
@@ -69,6 +70,7 @@ class File::Stat
       # Not supported and/or meaningless on MS Windows
       @dev_major     = nil
       @dev_minor     = nil
+      @gid           = 0    # TODO: Make this work?
       @grpowned      = true # TODO: Make this work
       @ino           = 0
       @owned         = true # TODO: Make this work
