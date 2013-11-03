@@ -1,6 +1,7 @@
 require File.join(File.dirname(__FILE__), 'windows', 'constants')
 require File.join(File.dirname(__FILE__), 'windows', 'structs')
 require File.join(File.dirname(__FILE__), 'windows', 'functions')
+require 'pp'
 
 class File::Stat
   include Windows::Constants
@@ -10,9 +11,9 @@ class File::Stat
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype, :gid
-  undef_method :ino, :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
+  undef_method :ino, :mode, :nlink, :pipe?, :readable?, :readable_real?, :size, :size?
   undef_method :socket?, :writable?, :writable_real?, :zero?
-  undef_method :<=>
+  undef_method :<=>, :inspect, :pretty_print
 
   attr_reader :atime
   attr_reader :ctime
@@ -21,6 +22,7 @@ class File::Stat
   attr_reader :blocks
   attr_reader :gid
   attr_reader :ino
+  attr_reader :mode
   attr_reader :nlink
   attr_reader :size
 
@@ -85,9 +87,9 @@ class File::Stat
       @writable      = true  # TODO: Make this work
       @writable_real = true  # TODO: Same as writeable
 
-      # Binary file if it ends in .exe
-      ptr = FFI::MemoryPointer.new(:ulong)
-      @executable = GetBinaryTypeA(path, ptr)
+      # Originally used GetBinaryType, but it only worked
+      # for .exe files, and it could return false positives.
+      @executable = %w[.bat .cmd .com .exe].include?(File.extname(@path).downcase)
 
       # Set blocks equal to size / blksize, rounded up
       case @blksize
@@ -118,6 +120,8 @@ class File::Stat
       @sparse        = @attr & FILE_ATTRIBUTE_SPARSE_FILE > 0
       @system        = @attr & FILE_ATTRIBUTE_SYSTEM > 0
       @temporary     = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
+
+      @mode = get_mode()
     ensure
       CloseHandle(handle) if handle
     end
@@ -272,7 +276,64 @@ class File::Stat
     end
   end
 
+  # Returns a stringified version of a File::Stat object.
+  #
+  def inspect
+    members = %w[
+      archive? atime blksize blockdev? blocks compressed? ctime dev
+      encrypted? gid hidden? indexed? ino mode mtime rdev nlink normal?
+      offline? readonly? reparse_point? size sparse? system? temporary?
+      uid
+    ]
+
+    str = "#<#{self.class}"
+
+    members.sort.each{ |mem|
+      if mem == 'mode'
+        str << " #{mem}=" << sprintf("0%o", send(mem.intern))
+      elsif mem[-1].chr == '?' # boolean methods
+        str << " #{mem.chop}=" << send(mem.intern).to_s
+      else
+        str << " #{mem}=" << send(mem.intern).to_s
+      end
+    }
+
+    str
+  end
+
   private
+
+  # This is based on fileattr_to_unixmode in win32.c
+  def get_mode
+    mode = 0
+
+    s_iread = 0x0100; s_iwrite = 0x0080; s_iexec = 0x0040
+    s_ifreg = 0x8000; s_ifdir = 0x4000; s_iwusr = 0200
+    s_iwgrp = 0020; s_iwoth = 0002;
+
+    if @readonly
+      mode |= s_iread
+    else
+      mode |= s_iread | s_iwrite | s_iwusr
+    end
+
+    if @directory
+      mode |= s_ifdir | s_iexec
+    else
+      mode |= s_ifreg
+    end
+
+    if @executable
+      mode |= s_iexec
+    end
+
+    mode |= (mode & 0700) >> 3;
+    mode |= (mode & 0700) >> 6;
+
+    mode &= ~(s_iwgrp | s_iwoth)
+
+    mode
+  end
 
   def get_blockdev(path)
     ptr = FFI::MemoryPointer.from_string(path)
@@ -344,9 +405,10 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  File::Stat.new(Dir.pwd)
-  File::Stat.new('stat.orig')
-  File::Stat.new('//scipio/users')
-  File::Stat.new('//scipio/users/djberge/Documents/command.txt')
-  File::Stat.new('NUL')
+  #File::Stat.new(Dir.pwd)
+  #File::Stat.new('stat.orig')
+  #File::Stat.new('//scipio/users')
+  #File::Stat.new('//scipio/users/djberge/Documents/command.txt')
+  #File::Stat.new('NUL')
+  puts File::Stat.new(Dir.pwd).mode
 end
