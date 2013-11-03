@@ -135,9 +135,9 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.blockdev?)
 
     begin
-       assert_true(File::Stat.new(@@block_dev).blockdev?)
+      assert_true(File::Stat.new(@@block_dev).blockdev?)
     rescue StandardError, SystemCallError
-       omit("Skipping because drive is empty or not found")
+      omit("Skipping because drive is empty or not found")
     end
   end
 
