@@ -1,5 +1,6 @@
 == 1.4.0 - ???
 * Conversion to FFI.
+* Now requires Ruby 1.9 or later.
 * The #mode method now more closely matches core MRI.
 * The #executable? method now simply checks the extension name. The Windows
   API method I was using before (GetBinaryType) was limited to .exe files and
