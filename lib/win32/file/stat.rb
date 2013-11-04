@@ -9,6 +9,7 @@ class File::Stat
   include Windows::Functions
   include Comparable
 
+  # We have to undefine these first in order to avoid redefinition warnings.
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :dev, :directory?, :executable?, :executable_real?, :file?
   undef_method :ftype, :gid, :ino, :mode, :nlink, :pipe?, :readable?, :rdev
@@ -16,21 +17,47 @@ class File::Stat
   undef_method :writable?, :writable_real?, :zero?
   undef_method :<=>, :inspect, :pretty_print
 
+  # A Time object containing the last access time.
   attr_reader :atime
+
+  # A Time object indicating when the file was last changed.
   attr_reader :ctime
+
+  # A Time object containing the last modification time.
   attr_reader :mtime
+
+  # The native filesystems' block size.
   attr_reader :blksize
+
+  # The number of native filesystem blocks allocated for this file.
   attr_reader :blocks
+
+  # The file owner's group ID.
   attr_reader :gid
+
+  # The file's unique identifier.
   attr_reader :ino
+
+  # Integer representing the permission bits of the file.
   attr_reader :mode
+
+  # The number of hard links to the file.
   attr_reader :nlink
+
+  # The size of the file in bytes.
   attr_reader :size
+
+  # The file owner's user ID.
   attr_reader :uid
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
 
+  # Creates and returns a File::Stat object, which encapsulate common status
+  # information for File objects on MS Windows sytems. The information is
+  # recorded at the moment the File::Stat object is created; changes made to
+  # the file after that point will not be reflected.
+  #
   def initialize(file)
     path  = file.tr('/', "\\")
     @path = path
@@ -147,22 +174,34 @@ class File::Stat
 
   ## Other
 
+  # Returns whether or not the file is an archive file.
+  #
   def archive?
     @archive
   end
 
+  # Returns whether or not the file is a block device. For MS Windows a
+  # block device is a removable drive, cdrom or ramdisk.
+  #
   def blockdev?
     @blockdev
   end
 
+  # Returns whether or not the file is a character device.
+  #
   def chardev?
     @chardev
   end
 
+  # Returns whether or not the file is compressed.
+  #
   def compressed?
     @compressed
   end
 
+  # Drive letter (A-Z) of the disk containing the file. If the path does
+  # not contain a drive letter, such as a UNC path, then nil is returned.
+  #
   def dev
     value = nil
     path  = File.expand_path(@path)
@@ -177,103 +216,154 @@ class File::Stat
     value
   end
 
+  # Returns whether or not the file is a directory.
+  #
   def directory?
     @directory
   end
 
+  # Returns whether or not the file in encrypted.
+  #
   def encrypted?
     @encrypted
   end
 
+  # Returns whether or not the file is executable. Generally speaking, this
+  # means .bat, .cmd, .com, and .exe files.
+  #
   def executable?
     @executable
   end
 
   alias executable_real? executable?
 
+  # Returns whether or not the file is a regular file, as opposed to a pipe,
+  # socket, etc.
+  #
   def file?
     @regular
   end
 
+  # Returns whether or not the file is hidden.
+  #
   def hidden?
     @hidden
   end
 
+  # Returns whether or not the file is content indexed.
+  #
   def indexed?
     @indexed
   end
 
   alias content_indexed? indexed?
 
+  # Returns whether or not the file is 'normal'. This is only true if
+  # virtually all other attributes are false.
+  #
   def normal?
     @normal
   end
 
+  # Returns whether or not the file is offline.
+  #
   def offline?
     @offline
   end
 
+  # Returns the drive number of the disk containing the file, or -1 if there
+  # is no associated drive number.
+  #
   def rdev
     PathGetDriveNumberA(File.expand_path(@path))
   end
 
+  # Meaningless for MS Windows
+  #
   def readable?
     @readable
   end
 
-  # TODO: Make this an alias for readable?
+  # Meaningless for MS Windows
+  #
   def readable_real?
     @readable_real
   end
 
+  # Returns whether or not the file is readonly.
+  #
   def readonly?
     @readonly
   end
 
   alias read_only? readonly?
 
+  # Returns whether or not the file is a pipe.
+  #
   def pipe?
     @pipe
   end
 
   alias socket? pipe?
 
+  # Returns whether or not the file is a reparse point.
+  #
   def reparse_point?
     @reparse_point
   end
 
+  # Returns whether or not the file size is zero.
+  #
   def size?
     @size > 0 ? @size : nil
   end
 
+  # Returns whether or not the file is a sparse file. In most cases a sparse
+  # file is an image file.
+  #
   def sparse?
     @sparse
   end
 
+  # Returns whether or not the file is a symlink.
+  #
   def symlink?
     @symlink
   end
 
+  # Returns whether or not the file is a system file.
+  #
   def system?
     @system
   end
 
+  # Returns whether or not the file is being used for temporary storage.
+  #
   def temporary?
     @temporary
   end
 
+  # Meaningless on MS Windows.
+  #
   def writable?
     @writable
   end
 
+  # Meaningless on MS Windows.
+  #
   def writable_real?
     @writable_real
   end
 
+  # Returns whether or not the file size is zero.
+  #
   def zero?
     @size == 0
   end
 
+  # Identifies the type of file. The return string is one of 'file',
+  # 'directory', 'characterSpecial', 'socket' or 'unknown'.
+  #
   def ftype
     return 'directory' if @directory
 
@@ -318,6 +408,39 @@ class File::Stat
     str
   end
 
+  # A custom pretty print method.  This was necessary not only to handle
+  # the additional attributes, but to work around an error caused by the
+  # builtin method for the current File::Stat class (see pp.rb).
+  #
+  def pretty_print(q)
+    members = %w[
+      archive? atime blksize blockdev? blocks compressed? ctime dev
+      encrypted? gid hidden? indexed? ino mode mtime rdev nlink normal?
+      offline? readonly? reparse_point? size sparse? system? temporary?
+      uid
+    ]
+
+    q.object_group(self){
+      q.breakable
+      members.each{ |mem|
+        q.group{
+          q.text("#{mem}".ljust(15) + "=> ")
+          if mem == 'mode'
+            q.text(sprintf("0%o", send(mem.intern)))
+          else
+            val = self.send(mem.intern)
+            if val.nil?
+              q.text('nil')
+            else
+              q.text(val.to_s)
+            end
+          end
+        }
+        q.comma_breakable unless mem == members.last
+      }
+    }
+  end
+
   private
 
   # This is based on fileattr_to_unixmode in win32.c
@@ -352,6 +475,7 @@ class File::Stat
     mode
   end
 
+  # Returns whether or not +path+ is a block device.
   def get_blockdev(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
@@ -369,6 +493,7 @@ class File::Stat
     end
   end
 
+  # Returns the blksize for +path+.
   def get_blksize(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
@@ -392,6 +517,7 @@ class File::Stat
     size
   end
 
+  # Generic method for retrieving a handle.
   def get_handle(path)
     handle = CreateFileA(
       path,
@@ -410,6 +536,7 @@ class File::Stat
     handle
   end
 
+  # Determines whether or not +file+ is a symlink.
   def get_symlink(file)
     bool = false
     file = File.expand_path(file)
@@ -432,6 +559,7 @@ class File::Stat
     bool
   end
 
+  # Returns the filetype for the given +handle+.
   def get_filetype(handle)
     file_type = GetFileType(handle)
 
@@ -441,20 +569,4 @@ class File::Stat
 
     file_type
   end
-end
-
-if $0 == __FILE__
-  #File::Stat.new(Dir.pwd)
-  #File::Stat.new('stat.orig')
-  #File::Stat.new('//scipio/users')
-  #File::Stat.new('//scipio/users/djberge/Documents/command.txt')
-  #File::Stat.new('NUL')
-  #puts File::Stat.new(Dir.pwd).inspect
-  #p File::Stat.new(Dir.pwd).dev
-  #p File::Stat.new(Dir.pwd).rdev
-  #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').dev
-  #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').rdev
-  p File::Stat.new('temp.txt').symlink?
-  p File::Stat.new('temp2.txt').symlink?
-  p File::Stat.new('temp.txt').nlink
 end
