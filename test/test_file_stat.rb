@@ -483,12 +483,14 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.sticky?)
   end
 
-=begin
-   def test_symlink
-      assert_respond_to(@stat, :symlink?)
-      assert_equal(false, @stat.symlink?)
-   end
-=end
+  test "symlink? basic functionality" do
+    assert_respond_to(@stat, :symlink?)
+    assert_boolean(@stat.symlink?)
+  end
+
+  test "symlink? returns expected value" do
+    assert_false(@stat.symlink?)
+  end
 
   test "system? basic functionality" do
     assert_respond_to(@stat, :system?)
