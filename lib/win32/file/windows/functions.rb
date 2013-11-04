@@ -14,19 +14,19 @@ module Windows
     ffi_convention :stdcall
 
     attach_function :CloseHandle, [:handle], :bool
-    attach_function :CreateFile, :CreateFileA, [:str, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
-    attach_function :FindFirstFile, :FindFirstFileA, [:string, :ptr], :handle
+    attach_function :CreateFile, :CreateFileW, [:buf_in, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
+    attach_function :FindFirstFile, :FindFirstFileA, [:str, :ptr], :handle
     attach_function :FindClose, [:handle], :bool
 
-    attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:str, :ptr, :ptr, :ptr, :ptr], :bool
-    attach_function :GetDriveType, :GetDriveTypeA, [:str], :uint
+    attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceW, [:buf_in, :ptr, :ptr, :ptr, :ptr], :bool
+    attach_function :GetDriveType, :GetDriveTypeW, [:buf_in], :uint
     attach_function :GetFileInformationByHandle, [:handle, :ptr], :bool
     attach_function :GetFileType, [:handle], :dword
 
     ffi_lib :shlwapi
 
-    attach_function :PathGetDriveNumber, :PathGetDriveNumberA, [:str], :int
-    attach_function :PathIsUNC, :PathIsUNCA, [:str], :bool
-    attach_function :PathStripToRoot, :PathStripToRootA, [:ptr], :bool
+    attach_function :PathGetDriveNumber, :PathGetDriveNumberW, [:buf_in], :int
+    attach_function :PathIsUNC, :PathIsUNCW, [:buf_in], :bool
+    attach_function :PathStripToRoot, :PathStripToRootW, [:ptr], :bool
   end
 end

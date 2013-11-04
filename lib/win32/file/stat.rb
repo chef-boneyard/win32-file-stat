@@ -1,3 +1,4 @@
+require File.join(File.dirname(__FILE__), 'windows', 'helper')
 require File.join(File.dirname(__FILE__), 'windows', 'constants')
 require File.join(File.dirname(__FILE__), 'windows', 'structs')
 require File.join(File.dirname(__FILE__), 'windows', 'functions')
@@ -204,12 +205,12 @@ class File::Stat
   #
   def dev
     value = nil
-    path  = File.expand_path(@path)
+    path  = File.expand_path(@path).wincode
 
     unless PathIsUNC(path)
       ptr = FFI::MemoryPointer.from_string(path)
       if PathStripToRoot(ptr)
-        value = ptr.read_string
+        value = ptr.read_bytes(4).tr("\000", '')
       end
     end
 
@@ -275,7 +276,8 @@ class File::Stat
   # is no associated drive number.
   #
   def rdev
-    PathGetDriveNumber(File.expand_path(@path))
+    fpath = File.expand_path(@path).wincode
+    PathGetDriveNumber(fpath)
   end
 
   # Meaningless for MS Windows
@@ -477,10 +479,10 @@ class File::Stat
 
   # Returns whether or not +path+ is a block device.
   def get_blockdev(path)
-    ptr = FFI::MemoryPointer.from_string(path)
+    ptr = FFI::MemoryPointer.from_string(path.wincode)
 
     if PathStripToRoot(ptr)
-      fpath = ptr.read_string
+      fpath = ptr.read_bytes(path.size * 2).split("\000\000").first
     else
       fpath = nil
     end
@@ -495,10 +497,10 @@ class File::Stat
 
   # Returns the blksize for +path+.
   def get_blksize(path)
-    ptr = FFI::MemoryPointer.from_string(path)
+    ptr = FFI::MemoryPointer.from_string(path.wincode)
 
     if PathStripToRoot(ptr)
-      fpath = ptr.read_string
+      fpath = ptr.read_bytes(path.size * 2).split("\000\000").first
     else
       fpath = nil
     end
@@ -510,8 +512,13 @@ class File::Stat
     free    = FFI::MemoryPointer.new(:ulong)
     total   = FFI::MemoryPointer.new(:ulong)
 
+    # Don't check for failure here since it
     if GetDiskFreeSpace(fpath, sectors, bytes, free, total)
       size = sectors.read_ulong * bytes.read_ulong
+    else
+      unless PathIsUNC(fpath)
+        raise SystemCallError.new('GetDiskFreeSpace', FFI.errno)
+      end
     end
 
     size
@@ -520,7 +527,7 @@ class File::Stat
   # Generic method for retrieving a handle.
   def get_handle(path)
     handle = CreateFile(
-      path,
+      path.wincode,
       GENERIC_READ,
       FILE_SHARE_READ,
       nil,
@@ -539,11 +546,11 @@ class File::Stat
   # Determines whether or not +file+ is a symlink.
   def get_symlink(file)
     bool = false
-    file = File.expand_path(file)
+    fpath = File.expand_path(file)
 
     begin
       data = WIN32_FIND_DATA.new
-      handle = FindFirstFile(file, data)
+      handle = FindFirstFile(fpath, data)
 
       if handle == INVALID_HANDLE_VALUE
         raise SystemCallError.new('FindFirstFile', FFI.errno)
@@ -553,7 +560,7 @@ class File::Stat
         bool = true
       end
     ensure
-      CloseHandle(handle)
+      FindClose(handle) if handle
     end
 
     bool
@@ -569,9 +576,4 @@ class File::Stat
 
     file_type
   end
-end
-
-if $0 == __FILE__
-  stat = File::Stat.new("C:\\Users\\djberge\\test.txt")
-  p stat.blksize
 end
