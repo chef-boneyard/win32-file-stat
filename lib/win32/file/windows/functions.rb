@@ -14,23 +14,19 @@ module Windows
     ffi_convention :stdcall
 
     attach_function :CloseHandle, [:handle], :bool
-    attach_function :CreateFileA, [:str, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
-    attach_function :FindFirstFileA, [:string, :ptr], :handle
-    attach_function :FindNextFileA, [:handle, :ptr], :bool
+    attach_function :CreateFile, :CreateFileA, [:str, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
+    attach_function :FindFirstFile, :FindFirstFileA, [:string, :ptr], :handle
     attach_function :FindClose, [:handle], :bool
 
-    attach_function :GetBinaryTypeA, [:string, :ptr], :bool
-    attach_function :GetDiskFreeSpaceA, [:str, :ptr, :ptr, :ptr, :ptr], :bool
-    attach_function :GetDriveTypeA, [:str], :uint
+    attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceA, [:str, :ptr, :ptr, :ptr, :ptr], :bool
+    attach_function :GetDriveType, :GetDriveTypeA, [:str], :uint
     attach_function :GetFileInformationByHandle, [:handle, :ptr], :bool
     attach_function :GetFileType, [:handle], :dword
 
     ffi_lib :shlwapi
 
-    attach_function :PathGetDriveNumberA, [:str], :int
-    attach_function :PathIsRootA, [:str], :bool
-    attach_function :PathIsUNCA, [:str], :bool
-    attach_function :PathRemoveBackslashA, [:buffer_out], :string
-    attach_function :PathStripToRootA, [:ptr], :bool
+    attach_function :PathGetDriveNumber, :PathGetDriveNumberA, [:str], :int
+    attach_function :PathIsUNC, :PathIsUNCA, [:str], :bool
+    attach_function :PathStripToRoot, :PathStripToRootA, [:ptr], :bool
   end
 end
