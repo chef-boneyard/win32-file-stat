@@ -1,9 +1,11 @@
+require 'ffi'
+
 module Windows
   module Constants
     MAX_PATH = 260
     MAXDWORD = 0xFFFFFFFF
 
-    INVALID_HANDLE_VALUE = 0xFFFFFFFF
+    INVALID_HANDLE_VALUE = FFI::Pointer.new(-1).address
 
     ERROR_FILE_NOT_FOUND = 2
     ERROR_NO_MORE_FILES  = 18
