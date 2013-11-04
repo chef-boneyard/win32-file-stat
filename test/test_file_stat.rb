@@ -429,17 +429,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(-1, File::Stat.new("NUL").rdev)
   end
 
-=begin
-   def test_setgid
-      assert_respond_to(@stat, :setgid?)
-      assert_equal(false, @stat.setgid?)
-   end
+  test "setgid is set to false" do
+    assert_respond_to(@stat, :setgid?)
+    assert_false(@stat.setgid?)
+  end
 
-   def test_setuid
-      assert_respond_to(@stat, :setuid?)
-      assert_equal(false, @stat.setuid?)
-   end
-=end
+  test "setuid is set to false" do
+    assert_respond_to(@stat, :setuid?)
+    assert_false(@stat.setuid?)
+  end
 
   test "size custom method basic functionality" do
     assert_respond_to(@stat, :size)
@@ -479,13 +477,13 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   test "sparse? returns expected value" do
     assert_false(@stat.sparse?)
   end
+
+  test "sticky is always set to false" do
+    assert_respond_to(@stat, :sticky?)
+    assert_false(@stat.sticky?)
+  end
+
 =begin
-
-   def test_sticky
-      assert_respond_to(@stat, :sticky?)
-      assert_equal(false, @stat.sticky?)
-   end
-
    def test_symlink
       assert_respond_to(@stat, :symlink?)
       assert_equal(false, @stat.symlink?)
@@ -510,19 +508,18 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.temporary?)
   end
 
-=begin
-   def test_uid
-      assert_respond_to(@stat, :uid)
-      assert_equal(0, @stat.uid)
-   end
-=end
+  test "uid is always set to zero" do
+    assert_respond_to(@stat, :uid)
+    assert_equal(0, @stat.uid)
+  end
+
   test "writable? basic functionality" do
     assert_respond_to(@stat, :writable?)
     assert_boolean(@stat.writable?)
   end
 
   test "writable? returns expected value" do
-    assert_equal(true, @stat.writable?)
+    assert_true(@stat.writable?)
   end
 
   test "writable_real? basic functionality" do
