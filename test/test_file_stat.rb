@@ -45,6 +45,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   def self.startup
+    @@block_dev = nil
+
     'A'.upto('Z'){ |volume|
       volume += ":\\"
       case GetDriveType(volume)
@@ -140,11 +142,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "blockdev? returns the expected value for a block device" do
-    begin
-      assert_true(File::Stat.new(@@block_dev).blockdev?)
-    rescue StandardError, SystemCallError
-      omit("Skipping because drive is empty or not found")
-    end
+    omit_unless(@@block_dev)
+    assert_true(File::Stat.new(@@block_dev).blockdev?)
   end
 
   test "blocks basic functionality" do
