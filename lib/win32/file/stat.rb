@@ -79,7 +79,7 @@ class File::Stat
         data = WIN32_FIND_DATA.new
         CloseHandle(handle)
 
-        handle = FindFirstFileA(path, data)
+        handle = FindFirstFile(path, data)
 
         if handle == INVALID_HANDLE_VALUE
           raise SystemCallError.new('FindFirstFile', FFI.errno)
@@ -206,9 +206,9 @@ class File::Stat
     value = nil
     path  = File.expand_path(@path)
 
-    unless PathIsUNCA(path)
+    unless PathIsUNC(path)
       ptr = FFI::MemoryPointer.from_string(path)
-      if PathStripToRootA(ptr)
+      if PathStripToRoot(ptr)
         value = ptr.read_string
       end
     end
@@ -275,7 +275,7 @@ class File::Stat
   # is no associated drive number.
   #
   def rdev
-    PathGetDriveNumberA(File.expand_path(@path))
+    PathGetDriveNumber(File.expand_path(@path))
   end
 
   # Meaningless for MS Windows
@@ -479,13 +479,13 @@ class File::Stat
   def get_blockdev(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
-    if PathStripToRootA(ptr)
+    if PathStripToRoot(ptr)
       fpath = ptr.read_string
     else
       fpath = nil
     end
 
-    case GetDriveTypeA(fpath)
+    case GetDriveType(fpath)
       when DRIVE_REMOVABLE, DRIVE_CDROM, DRIVE_RAMDISK
         true
       else
@@ -497,7 +497,7 @@ class File::Stat
   def get_blksize(path)
     ptr = FFI::MemoryPointer.from_string(path)
 
-    if PathStripToRootA(ptr)
+    if PathStripToRoot(ptr)
       fpath = ptr.read_string
     else
       fpath = nil
@@ -510,7 +510,7 @@ class File::Stat
     free    = FFI::MemoryPointer.new(:ulong)
     total   = FFI::MemoryPointer.new(:ulong)
 
-    if GetDiskFreeSpaceA(fpath, sectors, bytes, free, total)
+    if GetDiskFreeSpace(fpath, sectors, bytes, free, total)
       size = sectors.read_ulong * bytes.read_ulong
     end
 
@@ -519,7 +519,7 @@ class File::Stat
 
   # Generic method for retrieving a handle.
   def get_handle(path)
-    handle = CreateFileA(
+    handle = CreateFile(
       path,
       GENERIC_READ,
       FILE_SHARE_READ,
@@ -543,7 +543,7 @@ class File::Stat
 
     begin
       data = WIN32_FIND_DATA.new
-      handle = FindFirstFileA(file, data)
+      handle = FindFirstFile(file, data)
 
       if handle == INVALID_HANDLE_VALUE
         raise SystemCallError.new('FindFirstFile', FFI.errno)
@@ -569,4 +569,9 @@ class File::Stat
 
     file_type
   end
+end
+
+if $0 == __FILE__
+  stat = File::Stat.new("C:\\Users\\djberge\\test.txt")
+  p stat.blksize
 end
