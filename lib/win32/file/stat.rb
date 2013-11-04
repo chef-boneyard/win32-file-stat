@@ -60,6 +60,8 @@ class File::Stat
   # the file after that point will not be reflected.
   #
   def initialize(file)
+    raise TypeError unless file.is_a?(String)
+
     path  = file.tr('/', "\\")
     @path = path
 
@@ -80,7 +82,8 @@ class File::Stat
         data = WIN32_FIND_DATA.new
         CloseHandle(handle)
 
-        handle = FindFirstFile(path, data)
+        fpath = path.wincode
+        handle = FindFirstFile(fpath, data)
 
         if handle == INVALID_HANDLE_VALUE
           raise SystemCallError.new('FindFirstFile', FFI.errno)
@@ -526,8 +529,10 @@ class File::Stat
 
   # Generic method for retrieving a handle.
   def get_handle(path)
+    fpath = path.wincode
+
     handle = CreateFile(
-      path.wincode,
+      fpath,
       GENERIC_READ,
       FILE_SHARE_READ,
       nil,
@@ -546,7 +551,7 @@ class File::Stat
   # Determines whether or not +file+ is a symlink.
   def get_symlink(file)
     bool = false
-    fpath = File.expand_path(file)
+    fpath = File.expand_path(file).wincode
 
     begin
       data = WIN32_FIND_DATA.new
