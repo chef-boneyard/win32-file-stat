@@ -10,9 +10,10 @@ class File::Stat
   include Comparable
 
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :dev, :directory?, :executable?, :executable_real?, :file?, :ftype
-  undef_method :gid, :ino, :mode, :nlink, :pipe?, :readable?, :rdev, :readable_real?
-  undef_method :size, :size?, :socket?, :uid, :writable?, :writable_real?, :zero?
+  undef_method :dev, :directory?, :executable?, :executable_real?, :file?
+  undef_method :ftype, :gid, :ino, :mode, :nlink, :pipe?, :readable?, :rdev
+  undef_method :readable_real?, :size, :size?, :socket?, :symlink?, :uid
+  undef_method :writable?, :writable_real?, :zero?
   undef_method :<=>, :inspect, :pretty_print
 
   attr_reader :atime
@@ -84,7 +85,6 @@ class File::Stat
       @setgid        = false
       @setuid        = false
       @sticky        = false
-      @symlink       = false # TODO: Make this work
       @uid           = 0     # TODO: Make this work
       @writable      = true  # TODO: Make this work
       @writable_real = true  # TODO: Same as writeable
@@ -123,7 +123,13 @@ class File::Stat
       @system        = @attr & FILE_ATTRIBUTE_SYSTEM > 0
       @temporary     = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
 
-      @mode = get_mode()
+      @mode = get_mode
+
+      if @reparse_point
+        @symlink = get_symlink(path)
+      else
+        @symlink = false
+      end
     ensure
       CloseHandle(handle) if handle
     end
@@ -242,6 +248,10 @@ class File::Stat
 
   def sparse?
     @sparse
+  end
+
+  def symlink?
+    @symlink
   end
 
   def system?
@@ -400,6 +410,28 @@ class File::Stat
     handle
   end
 
+  def get_symlink(file)
+    bool = false
+    file = File.expand_path(file)
+
+    begin
+      data = WIN32_FIND_DATA.new
+      handle = FindFirstFileA(file, data)
+
+      if handle == INVALID_HANDLE_VALUE
+        raise SystemCallError.new('FindFirstFile', FFI.errno)
+      end
+
+      if data[:dwReserved0] == IO_REPARSE_TAG_SYMLINK
+        bool = true
+      end
+    ensure
+      CloseHandle(handle)
+    end
+
+    bool
+  end
+
   def get_filetype(handle)
     file_type = GetFileType(handle)
 
@@ -417,9 +449,12 @@ if $0 == __FILE__
   #File::Stat.new('//scipio/users')
   #File::Stat.new('//scipio/users/djberge/Documents/command.txt')
   #File::Stat.new('NUL')
-  puts File::Stat.new(Dir.pwd).inspect
+  #puts File::Stat.new(Dir.pwd).inspect
   #p File::Stat.new(Dir.pwd).dev
   #p File::Stat.new(Dir.pwd).rdev
   #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').dev
   #p File::Stat.new('//scipio/users/djberge/Documents/command.txt').rdev
+  p File::Stat.new('temp.txt').symlink?
+  p File::Stat.new('temp2.txt').symlink?
+  p File::Stat.new('temp.txt').nlink
 end
