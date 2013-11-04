@@ -4,4 +4,7 @@
 * Rakefile
 * win32-file-stat.gemspec
 * lib/win32/file/stat.rb
+* lib/win32/file/windows/constants.rb
+* lib/win32/file/windows/functions.rb
+* lib/win32/file/windows/structs.rb
 * test/test_file_stat.rb
