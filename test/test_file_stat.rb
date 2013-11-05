@@ -14,35 +14,12 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   ffi_lib :kernel32
 
   attach_function :GetDriveType, :GetDriveTypeA, [:string], :ulong
-  attach_function :IsWow64Process, [:uintptr_t, :pointer], :bool
-  attach_function :GetCurrentProcess, [], :uintptr_t
   attach_function :GetFileAttributes, :GetFileAttributesA, [:string], :ulong
   attach_function :SetFileAttributes, :SetFileAttributesA, [:string, :ulong], :bool
 
   DRIVE_REMOVABLE = 2
   DRIVE_CDROM     = 5
   DRIVE_RAMDISK   = 6
-
-  # Helper method to determine if you're on a 64 bit version of Windows
-  def windows_64?
-    bool = false
-
-    if respond_to?(:IsWow64Process, true)
-      pbool = FFI::MemoryPointer.new(:int)
-
-      # The IsWow64Process function will return false for a 64 bit process,
-      # so we check using both the address size and IsWow64Process.
-      if FFI::Platform::ADDRESS_SIZE == 64
-        bool = true
-      else
-        if IsWow64Process(GetCurrentProcess(), pbool)
-          bool = true if pbool.read_int == 1
-        end
-      end
-    end
-
-    bool
-  end
 
   def self.startup
     @@block_dev = nil
@@ -58,7 +35,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
     @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
-    @@sys_file = File.join(File.expand_path(File.dirname(__FILE__)), 'C:/pagefile.sys')
+    @@sys_file = 'C:/pagefile.sys'
 
     File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
     File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
@@ -141,6 +118,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(File::Stat.new('NUL').blockdev?)
   end
 
+  # In unusual situations this could fail.
   test "blockdev? returns the expected value for a block device" do
     omit_unless(@@block_dev)
     assert_true(File::Stat.new(@@block_dev).blockdev?)
@@ -450,7 +428,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "size custom method works on system files" do
-    omit_if(windows_64?, 'skipping system file test on 64-bit OS')
     assert_nothing_raised{ File::Stat.new(@@sys_file).size }
   end
 
