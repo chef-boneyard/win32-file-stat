@@ -76,8 +76,8 @@ module Windows
         :nFileSizeLow, :ulong,
         :dwReserved0, :ulong,
         :dwReserved1, :ulong,
-        :cFileName, [:uint8, MAX_PATH],
-        :cAlternateFileName, [:uint8, 14]
+        :cFileName, [:uint8, MAX_PATH*2],
+        :cAlternateFileName, [:uint8, 28]
       )
 
       # Return the atime as a number
@@ -85,6 +85,7 @@ module Windows
         date = ULARGE_INTEGER.new
         date[:u][:LowPart] = self[:ftLastAccessTime][:dwLowDateTime]
         date[:u][:HighPart] = self[:ftLastAccessTime][:dwHighDateTime]
+        return 0 if date[:QuadPart]==0
         date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
       end
 
@@ -93,6 +94,7 @@ module Windows
         date = ULARGE_INTEGER.new
         date[:u][:LowPart] = self[:ftCreationTime][:dwLowDateTime]
         date[:u][:HighPart] = self[:ftCreationTime][:dwHighDateTime]
+        return 0 if date[:QuadPart]==0
         date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
       end
 
@@ -101,6 +103,7 @@ module Windows
         date = ULARGE_INTEGER.new
         date[:u][:LowPart] = self[:ftLastWriteTime][:dwLowDateTime]
         date[:u][:HighPart] = self[:ftLastWriteTime][:dwHighDateTime]
+        return 0 if date[:QuadPart]==0
         date[:QuadPart] / 10000000 - 11644473600 # ns, 100-ns since Jan 1, 1601.
       end
 
