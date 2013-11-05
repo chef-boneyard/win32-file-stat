@@ -15,7 +15,7 @@ module Windows
 
     attach_function :CloseHandle, [:handle], :bool
     attach_function :CreateFile, :CreateFileW, [:buf_in, :dword, :dword, :ptr, :dword, :dword, :handle], :handle
-    attach_function :FindFirstFile, :FindFirstFileA, [:str, :ptr], :handle
+    attach_function :FindFirstFile, :FindFirstFileW, [:buf_in, :ptr], :handle
     attach_function :FindClose, [:handle], :bool
 
     attach_function :GetDiskFreeSpace, :GetDiskFreeSpaceW, [:buf_in, :ptr, :ptr, :ptr, :ptr], :bool
