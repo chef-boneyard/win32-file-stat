@@ -78,11 +78,11 @@ class File::Stat
       @regular  = @filetype == FILE_TYPE_DISK
       @pipe     = @filetype == FILE_TYPE_PIPE
 
-      if @blockdev || @chardev || @pipe
+      fpath = path.wincode
+      if (@blockdev || @chardev || @pipe) && GetDriveType(fpath)!=DRIVE_REMOVABLE
         data = WIN32_FIND_DATA.new
         CloseHandle(handle)
 
-        fpath = path.wincode
         handle = FindFirstFile(fpath, data)
 
         if handle == INVALID_HANDLE_VALUE
@@ -92,6 +92,7 @@ class File::Stat
         FindClose(handle)
 
         @nlink = 1 # Default from stat/wstat function.
+        handle = nil
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
