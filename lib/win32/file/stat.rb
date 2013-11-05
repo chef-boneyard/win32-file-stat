@@ -499,7 +499,13 @@ class File::Stat
   end
 
   # Returns the blksize for +path+.
+  #---
+  # The jruby-ffi gem (as of 1.9.3) reports a failure here where it shouldn't.
+  # Consequently, this method returns 4096 automatically for now on JRuby.
+  #
   def get_blksize(path)
+    return 4096 if RUBY_PLATFORM == 'java' # Bug in jruby-ffi
+
     ptr = FFI::MemoryPointer.from_string(path.wincode)
 
     if PathStripToRoot(ptr)
@@ -515,7 +521,6 @@ class File::Stat
     free    = FFI::MemoryPointer.new(:ulong)
     total   = FFI::MemoryPointer.new(:ulong)
 
-    # Don't check for failure here since it
     if GetDiskFreeSpace(fpath, sectors, bytes, free, total)
       size = sectors.read_ulong * bytes.read_ulong
     else
