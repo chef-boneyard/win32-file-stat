@@ -71,15 +71,20 @@ class File::Stat
 
       @blockdev = get_blockdev(path)
       @blksize  = get_blksize(path)
-      @filetype = get_filetype(handle) if handle
 
-      # Get specific file types
-      @chardev  = @filetype == FILE_TYPE_CHAR
-      @regular  = @filetype == FILE_TYPE_DISK
-      @pipe     = @filetype == FILE_TYPE_PIPE
+      if handle
+        @filetype = get_filetype(handle)
+        @chardev  = @filetype == FILE_TYPE_CHAR
+        @regular  = @filetype == FILE_TYPE_DISK
+        @pipe     = @filetype == FILE_TYPE_PIPE
+      else
+        @chardev = false
+        @regular = false
+        @pipe    = false
+      end
 
       fpath = path.wincode
-      if handle==nil || ((@blockdev || @chardev || @pipe) && GetDriveType(fpath)!=DRIVE_REMOVABLE)
+      if handle == nil || ((@blockdev || @chardev || @pipe) && GetDriveType(fpath) != DRIVE_REMOVABLE)
         data = WIN32_FIND_DATA.new
         CloseHandle(handle) if handle
 
@@ -547,8 +552,8 @@ class File::Stat
       0
     )
 
-    if handle == INVALID_HANDLE_VALUE 
-      return nil if FFI.errno==32   
+    if handle == INVALID_HANDLE_VALUE
+      return nil if FFI.errno == 32 # ERROR_SHARING_VIOLATION. Locked files.
       raise SystemCallError.new('CreateFile', FFI.errno)
     end
 
