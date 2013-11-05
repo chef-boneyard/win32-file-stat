@@ -71,7 +71,7 @@ class File::Stat
 
       @blockdev = get_blockdev(path)
       @blksize  = get_blksize(path)
-      @filetype = get_filetype(handle)
+      @filetype = get_filetype(handle) if handle
 
       # Get specific file types
       @chardev  = @filetype == FILE_TYPE_CHAR
@@ -79,9 +79,9 @@ class File::Stat
       @pipe     = @filetype == FILE_TYPE_PIPE
 
       fpath = path.wincode
-      if (@blockdev || @chardev || @pipe) && GetDriveType(fpath)!=DRIVE_REMOVABLE
+      if handle==nil || ((@blockdev || @chardev || @pipe) && GetDriveType(fpath)!=DRIVE_REMOVABLE)
         data = WIN32_FIND_DATA.new
-        CloseHandle(handle)
+        CloseHandle(handle) if handle
 
         handle = FindFirstFile(fpath, data)
 
@@ -547,7 +547,8 @@ class File::Stat
       0
     )
 
-    if handle == INVALID_HANDLE_VALUE
+    if handle == INVALID_HANDLE_VALUE 
+      return nil if FFI.errno==32   
       raise SystemCallError.new('CreateFile', FFI.errno)
     end
 
