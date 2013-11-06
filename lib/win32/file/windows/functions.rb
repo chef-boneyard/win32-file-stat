@@ -36,6 +36,7 @@ module Windows
     attach_function :ConvertSidToStringSid, :ConvertSidToStringSidA, [:ptr, :ptr], :bool
     attach_function :GetFileSecurity, :GetFileSecurityW, [:buf_in, :int, :ptr, :dword, :ptr], :bool
     attach_function :GetSecurityDescriptorOwner, [:ptr, :ptr, :ptr], :bool
+    attach_function :GetSecurityDescriptorGroup, [:ptr, :ptr, :ptr], :bool
     attach_function :GetTokenInformation, [:handle, :int, :ptr, :dword, :ptr], :bool
   end
 end

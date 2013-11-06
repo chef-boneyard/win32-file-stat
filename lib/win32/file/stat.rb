@@ -13,7 +13,8 @@ class File::Stat
   # We have to undefine these first in order to avoid redefinition warnings.
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :dev, :directory?, :executable?, :executable_real?, :file?
-  undef_method :ftype, :gid, :ino, :mode, :nlink, :pipe?, :readable?, :rdev
+  undef_method :ftype, :gid, :grpowned?, :ino, :mode, :nlink, :owned?
+  undef_method :pipe?, :readable?, :rdev
   undef_method :readable_real?, :size, :size?, :socket?, :symlink?, :uid
   undef_method :writable?, :writable_real?, :zero?
   undef_method :<=>, :inspect, :pretty_print
@@ -32,9 +33,6 @@ class File::Stat
 
   # The number of native filesystem blocks allocated for this file.
   attr_reader :blocks
-
-  # The file owner's group ID.
-  attr_reader :gid
 
   # The file's unique identifier.
   attr_reader :ino
@@ -62,9 +60,14 @@ class File::Stat
     path  = file.tr('/', "\\")
     @path = path
 
-    @sid = get_file_sid(file)
-    @uid = @sid.split('-').last.to_i
-    @owned = @sid == get_current_process_sid
+    @user_sid = get_file_sid(file, OWNER_SECURITY_INFORMATION)
+    @grp_sid  = get_file_sid(file, GROUP_SECURITY_INFORMATION)
+
+    @uid = @user_sid.split('-').last.to_i
+    @gid = @grp_sid.split('-').last.to_i
+
+    @owned = @user_sid == get_current_process_sid(TokenUser)
+    @grpowned = @grp_sid == get_current_process_sid(TokenGroups)
 
     begin
       # The handle returned will be used by other functions
@@ -85,6 +88,7 @@ class File::Stat
       end
 
       fpath = path.wincode
+
       if handle == nil || ((@blockdev || @chardev || @pipe) && GetDriveType(fpath) != DRIVE_REMOVABLE)
         data = WIN32_FIND_DATA.new
         CloseHandle(handle) if handle
@@ -112,8 +116,6 @@ class File::Stat
       # Not supported and/or meaningless on MS Windows
       @dev_major     = nil
       @dev_minor     = nil
-      @gid           = 0    # TODO: Make this work?
-      @grpowned      = true # TODO: Make this work
       @ino           = 0
       @readable      = true # TODO: Make this work
       @readable_real = true # TODO: Same as readable
@@ -253,6 +255,18 @@ class File::Stat
     @regular
   end
 
+  # Returns the user ID of the file. If full_sid is true, then the full
+  # string sid is returned instead.
+  #--
+  # The user id is the RID of the SID.
+  def gid(full_sid = false)
+    full_sid ? @grp_sid : @gid
+  end
+
+  def grpowned?
+    @grpowned
+  end
+
   # Returns whether or not the file is hidden.
   #
   def hidden?
@@ -364,7 +378,7 @@ class File::Stat
   #--
   # The user id is the RID of the SID.
   def uid(full_sid = false)
-    full_sid ? @sid : @uid
+    full_sid ? @user_sid : @uid
   end
 
   # Meaningless on MS Windows.
@@ -608,8 +622,7 @@ class File::Stat
   end
 
   # Return a sid of the file's owner.
-  def get_file_sid(file)
-    info = OWNER_SECURITY_INFORMATION
+  def get_file_sid(file, info)
     wfile = file.wincode
     size_needed_ptr = FFI::MemoryPointer.new(:ulong)
 
@@ -631,9 +644,15 @@ class File::Stat
     sid_ptr   = FFI::MemoryPointer.new(:pointer)
     defaulted = FFI::MemoryPointer.new(:bool)
 
-    unless GetSecurityDescriptorOwner(security_ptr, sid_ptr, defaulted)
-      raise SystemCallError.new("GetFileSecurity", FFI.errno)
+    if info == OWNER_SECURITY_INFORMATION
+      bool = GetSecurityDescriptorOwner(security_ptr, sid_ptr, defaulted)
+      meth = "GetSecurityDescriptorOwner"
+    else
+      bool = GetSecurityDescriptorGroup(security_ptr, sid_ptr, defaulted)
+      meth = "GetSecurityDescriptorGroup"
     end
+
+    raise SystemCallError.new(meth, FFI.errno) unless bool
 
     ptr = FFI::MemoryPointer.new(:string)
 
@@ -645,7 +664,7 @@ class File::Stat
   end
 
   # Return the sid of the current process.
-  def get_current_process_sid
+  def get_current_process_sid(token_type)
     token = FFI::MemoryPointer.new(:uintptr_t)
     sid = nil
 
@@ -657,14 +676,24 @@ class File::Stat
 
       token   = token.read_pointer.to_i
       rlength = FFI::MemoryPointer.new(:pointer)
-      tuser   = 0.chr * 512
 
-      unless GetTokenInformation(token, TokenUser, tuser, tuser.size, rlength)
+      if token_type == TokenUser
+        buf = 0.chr * 512
+      else
+        buf = TOKEN_GROUP.new
+      end
+
+      unless GetTokenInformation(token, token_type, buf, buf.size, rlength)
         raise SystemCallError.new("GetTokenInformation", FFI.errno)
       end
 
-      tsid = tuser[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
-      ptr  = FFI::MemoryPointer.new(:string)
+      if token_type == TokenUser
+        tsid = buf[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
+      else
+        tsid = buf[:Groups][0][:Sid]
+      end
+
+      ptr = FFI::MemoryPointer.new(:string)
 
       unless ConvertSidToStringSid(tsid, ptr)
         raise SystemCallError.new("ConvertSidToStringSid")
@@ -680,10 +709,14 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  #p File::Stat.new("C:/Users/djberge/test.txt").uid(true)
-  #p File::Stat.new("C:/Users/djberge/test.txt").owned?
-  p File::Stat.new("E:/").uid
-  p File::Stat.new("E:/").uid(true)
+  #p File::Stat.new("C:/Users/djberge/test.txt")
+  #p File::Stat.new("C:/Users/djberge/test.txt").gid
+  #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
+  #p File::Stat.new("C:/Users/djberge/test.txt").grpowned?
+
+  p File::Stat.new("E:/")
+  p File::Stat.new("E:/").gid
+  p File::Stat.new("E:/").gid(true)
 
   #p File::Stat.new(Dir.pwd).uid
   #p File::Stat.new("C:/").uid(true)

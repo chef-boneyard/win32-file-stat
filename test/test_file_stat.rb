@@ -243,9 +243,19 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.encrypted?)
   end
 
-  test "gid defined and always returns zero" do
+  test "gid method basic functionality" do
     assert_respond_to(@stat, :gid)
-    assert_equal(0, @stat.gid)
+    assert_nothing_raised{ @stat.gid }
+    assert_kind_of(Fixnum, @stat.gid)
+  end
+
+  test "gid returns a sane result" do
+    assert_true(@stat.gid >= 0 && @stat.gid <= 10000)
+  end
+
+  test "gid returns a string argument if true argument provided" do
+    assert_nothing_raised{ @stat.gid(true) }
+    assert_match("S-1-", @stat.gid(true))
   end
 
   test "grpowned? defined and always returns true" do

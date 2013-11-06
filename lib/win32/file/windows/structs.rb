@@ -112,5 +112,16 @@ module Windows
         (self[:nFileSizeHigh] * (MAXDWORD + 1)) + self[:nFileSizeLow]
       end
     end
+
+    class SID_AND_ATTRIBUTES < FFI::Struct
+      layout(:Sid, :pointer, :Attributes, :ulong)
+    end
+
+    class TOKEN_GROUP < FFI::Struct
+      layout(
+        :GroupCount, :ulong,
+        :Groups, [SID_AND_ATTRIBUTES, 128]
+      )
+    end
   end
 end
