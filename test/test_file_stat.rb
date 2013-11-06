@@ -287,11 +287,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "ino method basic functionality" do
     assert_respond_to(@stat, :ino)
+    assert_nothing_raised{ @stat.ino }
     assert_kind_of(Fixnum, @stat.ino)
   end
 
-  test "ino method defined and always returns zero" do
-    assert_equal(0, @stat.ino)
+  test "ino method returns a sane value" do
+    assert_true(@stat.ino > 1000)
+  end
+
+  test "ino method returns nil on a special device" do
+    assert_nil(File::Stat.new("NUL").ino)
   end
 
   test "inspect custom method basic functionality" do

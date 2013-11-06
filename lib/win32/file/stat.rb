@@ -34,7 +34,7 @@ class File::Stat
   # The number of native filesystem blocks allocated for this file.
   attr_reader :blocks
 
-  # The file's unique identifier.
+  # The file's unique identifier. Only valid for regular files.
   attr_reader :ino
 
   # Integer representing the permission bits of the file.
@@ -103,6 +103,7 @@ class File::Stat
         handle = nil
 
         @nlink = 1 # Default from stat/wstat function.
+        @ino   = nil
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
@@ -111,12 +112,12 @@ class File::Stat
         end
 
         @nlink = data[:nNumberOfLinks]
+        @ino = data[:nFileIndexHigh] | data[:nFileIndexLow]
       end
 
       # Not supported and/or meaningless on MS Windows
       @dev_major     = nil
       @dev_minor     = nil
-      @ino           = 0
       @readable      = true # TODO: Make this work
       @readable_real = true # TODO: Same as readable
       @rdev_major    = nil
@@ -709,15 +710,16 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  #p File::Stat.new("C:/Users/djberge/test.txt")
+  p File::Stat.new("C:/Users/djberge/test.txt")
   #p File::Stat.new("C:/Users/djberge/test.txt").gid
   #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
   #p File::Stat.new("C:/Users/djberge/test.txt").grpowned?
 
-  p File::Stat.new("E:/")
-  p File::Stat.new("E:/").gid
-  p File::Stat.new("E:/").gid(true)
+  #p File::Stat.new("E:/")
+  #p File::Stat.new("E:/").gid
+  #p File::Stat.new("E:/").gid(true)
 
+  #File::Stat.new(Dir.pwd)
   #p File::Stat.new(Dir.pwd).uid
   #p File::Stat.new("C:/").uid(true)
   #p File::Stat.new("C:/pagefile.sys").uid
