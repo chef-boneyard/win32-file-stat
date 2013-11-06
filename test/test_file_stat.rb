@@ -339,6 +339,16 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.offline?)
   end
 
+  test "owned? method basic functionality" do
+    assert_respond_to(@stat, :owned?)
+    assert_boolean(@stat.owned?)
+  end
+
+  test "owned? returns the expected results" do
+    assert_true(@stat.owned?)
+    assert_false(File::Stat.new(@@sys_file).owned?)
+  end
+
   test "pipe? custom method basic functionality" do
     assert_respond_to(@stat, :pipe?)
     assert_boolean(@stat.pipe?)
@@ -486,9 +496,19 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.temporary?)
   end
 
-  test "uid is always set to zero" do
+  test "uid basic functionality" do
     assert_respond_to(@stat, :uid)
-    assert_equal(0, @stat.uid)
+    assert_nothing_raised{ @stat.uid }
+    assert_kind_of(Fixnum, @stat.uid)
+  end
+
+  test "uid returns a sane result" do
+    assert_true(@stat.uid >= 0 && @stat.uid <= 10000)
+  end
+
+  test "uid returns a string argument if true argument provided" do
+    assert_nothing_raised{ @stat.uid(true) }
+    assert_match("S-1-", @stat.uid(true))
   end
 
   test "writable? basic functionality" do
