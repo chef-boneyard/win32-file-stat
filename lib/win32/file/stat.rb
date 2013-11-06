@@ -48,9 +48,6 @@ class File::Stat
   # The size of the file in bytes.
   attr_reader :size
 
-  # The file owner's user ID.
-  attr_reader :uid
-
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
 
@@ -64,6 +61,9 @@ class File::Stat
 
     path  = file.tr('/', "\\")
     @path = path
+
+    @sid = get_file_sid(file)
+    @uid = @sid.split('-').last.to_i
 
     begin
       # The handle returned will be used by other functions
@@ -122,7 +122,6 @@ class File::Stat
       @setgid        = false
       @setuid        = false
       @sticky        = false
-      @uid           = 0     # TODO: Make this work
       @writable      = true  # TODO: Make this work
       @writable_real = true  # TODO: Same as writeable
 
@@ -352,6 +351,14 @@ class File::Stat
   #
   def temporary?
     @temporary
+  end
+
+  # Returns the user ID of the file. If full_sid is true, then the full
+  # string sid is returned instead.
+  #--
+  # The user id is the RID of the SID.
+  def uid(full_sid = false)
+    full_sid ? @sid : @uid
   end
 
   # Meaningless on MS Windows.
@@ -593,4 +600,75 @@ class File::Stat
 
     file_type
   end
+
+  # Return a sid of the file's owner.
+  def get_file_sid(file)
+    info = OWNER_SECURITY_INFORMATION
+    wfile = file.wincode
+    size_needed_ptr = FFI::MemoryPointer.new(:ulong)
+
+    # First pass, get the size needed
+    bool = GetFileSecurity(wfile, info, nil, 0, size_needed_ptr)
+
+    size_needed  = size_needed_ptr.read_ulong
+    security_ptr = FFI::MemoryPointer.new(size_needed)
+
+    # Second pass, this time with the appropriately sized security pointer
+    bool = GetFileSecurity(wfile, info, security_ptr, security_ptr.size, size_needed_ptr)
+
+    unless bool
+      error = FFI.errno
+      return "S-1-5-80-0" if error == 32 # ERROR_SHARING_VIOLATION. Locked files, etc.
+      raise SystemCallError.new("GetFileSecurity", error)
+    end
+
+    sid_ptr   = FFI::MemoryPointer.new(:pointer)
+    defaulted = FFI::MemoryPointer.new(:bool)
+
+    unless GetSecurityDescriptorOwner(security_ptr, sid_ptr, defaulted)
+      raise SystemCallError.new("GetFileSecurity", FFI.errno)
+    end
+
+    ptr = FFI::MemoryPointer.new(:string)
+
+    unless ConvertSidToStringSid(sid_ptr.read_pointer, ptr)
+      raise SystemCallError.new("ConvertSidToStringSid")
+    end
+
+    ptr.read_pointer.read_string
+  end
+
+  # Return the sid of the current process.
+  def get_current_process_sid
+    token = FFI::MemoryPointer.new(:uintptr_t)
+    sid = nil
+
+    begin
+      # Get the current process sid
+      unless OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, token)
+        raise SystemCallError.new("OpenProcessToken", FFI.errno)
+      end
+
+      token   = token.read_pointer.to_i
+      rlength = FFI::MemoryPointer.new(:pointer)
+      tuser   = 0.chr * 512
+
+      unless GetTokenInformation(token, TokenUser, tuser, tuser.size, rlength)
+        raise SystemCallError.new("GetTokenInformation", FFI.errno)
+      end
+
+      sid = tuser[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
+    ensure
+      CloseHandle(token) if token
+    end
+
+    sid
+  end
+end
+
+if $0 == __FILE__
+  #p File::Stat.new("C:/Users/djberge/test.txt").uid
+  #p File::Stat.new(Dir.pwd).uid
+  #p File::Stat.new("C:/").uid(true)
+  p File::Stat.new("C:/pagefile.sys").uid
 end
