@@ -50,6 +50,10 @@
   File class attempts to use the custom File::Stat object defined in this class,
   and that will likely cause problems.
 
+  If run in verbose mode you will see a warning about initialize being
+  redefined. I can do nothing about that since my old trick of aliasing and
+  undefining initialize now causes a warning as well!
+
 == Known bugs
   None that I'm aware of beyond the "Known Issues" listed above. Please report
   any bugs you find on the project page at:
