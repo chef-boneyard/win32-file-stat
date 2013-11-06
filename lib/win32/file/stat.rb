@@ -34,6 +34,9 @@ class File::Stat
   # The number of native filesystem blocks allocated for this file.
   attr_reader :blocks
 
+  # The serial number of the file's volume.
+  attr_reader :dev
+
   # The file's unique identifier. Only valid for regular files.
   attr_reader :ino
 
@@ -104,6 +107,7 @@ class File::Stat
 
         @nlink = 1 # Default from stat/wstat function.
         @ino   = nil
+        @dev   = nil
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
@@ -112,7 +116,8 @@ class File::Stat
         end
 
         @nlink = data[:nNumberOfLinks]
-        @ino = data[:nFileIndexHigh] | data[:nFileIndexLow]
+        @ino   = data[:nFileIndexHigh] | data[:nFileIndexLow]
+        @dev   = data[:dwVolumeSerialNumber]
       end
 
       # Not supported and/or meaningless on MS Windows
@@ -209,23 +214,6 @@ class File::Stat
   #
   def compressed?
     @compressed
-  end
-
-  # Drive letter (A-Z) of the disk containing the file. If the path does
-  # not contain a drive letter, such as a UNC path, then nil is returned.
-  #
-  def dev
-    value = nil
-    path  = File.expand_path(@path).wincode
-
-    unless PathIsUNC(path)
-      ptr = FFI::MemoryPointer.from_string(path)
-      if PathStripToRoot(ptr)
-        value = ptr.read_bytes(4).tr("\000", '')
-      end
-    end
-
-    value
   end
 
   # Returns whether or not the file is a directory.

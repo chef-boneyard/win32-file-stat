@@ -163,17 +163,22 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "dev basic functionality" do
     assert_respond_to(@stat, :dev)
-    assert_kind_of([NilClass, String], @stat.dev)
+    assert_nothing_raised{ @stat.dev }
+    assert_kind_of(Numeric, @stat.dev)
   end
 
-  test "dev returns expected value on non-unc path" do
-    assert_equal('C:', File::Stat.new("C:\\Program Files").dev.upcase)
+  test "dev returns a sane value" do
+    assert_true(File::Stat.new("C:\\Program Files").dev > 1000)
+  end
+
+  test "dev returns nil on special files" do
+    assert_equal(nil, File::Stat.new("NUL").dev)
   end
 
   # Not sure how to test properly in a generic way, but works on my local network
-  test "dev returns expected value on unc path" do
+  test "dev works on unc path" do
     omit_unless(Etc.getlogin == "djberge")
-    assert_nil(File::Stat.new("//scipio/users").dev)
+    assert_true(File::Stat.new("//scipio/users").dev > 1000)
   end
 
   test "dev_major defined and always returns nil" do
