@@ -64,6 +64,7 @@ class File::Stat
 
     @sid = get_file_sid(file)
     @uid = @sid.split('-').last.to_i
+    @owned = @sid == get_current_process_sid
 
     begin
       # The handle returned will be used by other functions
@@ -95,9 +96,9 @@ class File::Stat
         end
 
         FindClose(handle)
+        handle = nil
 
         @nlink = 1 # Default from stat/wstat function.
-        handle = nil
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
@@ -114,7 +115,6 @@ class File::Stat
       @gid           = 0    # TODO: Make this work?
       @grpowned      = true # TODO: Make this work
       @ino           = 0
-      @owned         = true # TODO: Make this work
       @readable      = true # TODO: Make this work
       @readable_real = true # TODO: Same as readable
       @rdev_major    = nil
@@ -278,6 +278,12 @@ class File::Stat
   #
   def offline?
     @offline
+  end
+
+  # Returns whether or not the current process owner is the owner of the file.
+  #
+  def owned?
+    @owned
   end
 
   # Returns the drive number of the disk containing the file, or -1 if there
@@ -657,7 +663,14 @@ class File::Stat
         raise SystemCallError.new("GetTokenInformation", FFI.errno)
       end
 
-      sid = tuser[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
+      tsid = tuser[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
+      ptr  = FFI::MemoryPointer.new(:string)
+
+      unless ConvertSidToStringSid(tsid, ptr)
+        raise SystemCallError.new("ConvertSidToStringSid")
+      end
+
+      sid = ptr.read_pointer.read_string
     ensure
       CloseHandle(token) if token
     end
@@ -667,8 +680,12 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  #p File::Stat.new("C:/Users/djberge/test.txt").uid
+  #p File::Stat.new("C:/Users/djberge/test.txt").uid(true)
+  #p File::Stat.new("C:/Users/djberge/test.txt").owned?
+  p File::Stat.new("E:/").uid
+  p File::Stat.new("E:/").uid(true)
+
   #p File::Stat.new(Dir.pwd).uid
   #p File::Stat.new("C:/").uid(true)
-  p File::Stat.new("C:/pagefile.sys").uid
+  #p File::Stat.new("C:/pagefile.sys").uid
 end
