@@ -566,6 +566,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.zero?)
   end
 
+  test "ffi functions are private" do
+    assert_not_respond_to(@stat, :CloseHandle)
+    assert_not_respond_to(File::Stat, :CloseHandle)
+  end
+
   def teardown
     SetFileAttributes(@@txt_file, @attr) # Set file back to normal
     File.delete(@temp) if File.exists?(@temp)
