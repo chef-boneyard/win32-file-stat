@@ -8,6 +8,7 @@ require 'etc'
 require 'ffi'
 require 'test-unit'
 require 'win32/file/stat'
+require 'win32/security'
 
 class TC_Win32_File_Stat < Test::Unit::TestCase
   extend FFI::Library
@@ -36,6 +37,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     @@txt_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
     @@sys_file = 'C:/pagefile.sys'
+    @@elevated = Win32::Security.elevated_security?
 
     File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
     File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
@@ -365,7 +367,11 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "owned? returns the expected results" do
-    assert_true(@stat.owned?)
+    if @@elevated
+      assert_false(@stat.owned?)
+    else
+      assert_true(@stat.owned?)
+    end
     assert_false(File::Stat.new(@@sys_file).owned?)
   end
 
@@ -577,5 +583,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     @@txt_file  = nil
     @@exe_file  = nil
     @@sys_file  = nil
+    @@elevated  = nil
   end
 end
