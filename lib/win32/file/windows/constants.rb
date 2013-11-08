@@ -3,6 +3,8 @@ require 'ffi'
 module Windows
   module Stat
     module Constants
+      private
+
       MAX_PATH = 260
       MAXDWORD = 0xFFFFFFFF
 

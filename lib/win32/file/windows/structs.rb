@@ -7,6 +7,8 @@ module Windows
     module Structs
       extend FFI::Library
 
+      private
+
       class LowHigh < FFI::Struct
         layout(:LowPart, :ulong, :HighPart, :ulong)
       end
