@@ -5,9 +5,9 @@ require File.join(File.dirname(__FILE__), 'windows', 'functions')
 require 'pp'
 
 class File::Stat
-  include Windows::Constants
-  include Windows::Structs
-  include Windows::Functions
+  include Windows::Stat::Constants
+  include Windows::Stat::Structs
+  include Windows::Stat::Functions
   include Comparable
 
   # We have to undefine these first in order to avoid redefinition warnings.
