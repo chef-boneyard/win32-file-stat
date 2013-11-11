@@ -116,7 +116,7 @@ class File::Stat
         end
 
         @nlink = data[:nNumberOfLinks]
-        @ino   = data[:nFileIndexHigh] | data[:nFileIndexLow]
+        @ino   = (data[:nFileIndexHigh] << 32) | data[:nFileIndexLow]
         @dev   = data[:dwVolumeSerialNumber]
       end
 
@@ -698,7 +698,7 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  p File::Stat.new("C:/Users/djberge/test.txt")
+  p File::Stat.new("C:/Users/djberge/test.txt").ino
   #p File::Stat.new("C:/Users/djberge/test.txt").gid
   #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
   #p File::Stat.new("C:/Users/djberge/test.txt").grpowned?

@@ -295,7 +295,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   test "ino method basic functionality" do
     assert_respond_to(@stat, :ino)
     assert_nothing_raised{ @stat.ino }
-    assert_kind_of(Fixnum, @stat.ino)
+    assert_kind_of(Numeric, @stat.ino)
   end
 
   test "ino method returns a sane value" do
