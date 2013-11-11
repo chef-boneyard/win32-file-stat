@@ -14,10 +14,10 @@ class File::Stat
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
   undef_method :dev, :directory?, :executable?, :executable_real?, :file?
   undef_method :ftype, :gid, :grpowned?, :ino, :mode, :nlink, :owned?
-  undef_method :pipe?, :readable?, :rdev
-  undef_method :readable_real?, :size, :size?, :socket?, :symlink?, :uid
-  undef_method :writable?, :writable_real?, :zero?
-  undef_method :<=>, :inspect, :pretty_print
+  undef_method :pipe?, :readable?, :readable_real?, :rdev
+  undef_method :size, :size?, :socket?, :symlink?, :uid
+  undef_method :world_readable?, :world_writable?, :writable?, :writable_real?
+  undef_method :<=>, :inspect, :pretty_print, :zero?
 
   # A Time object containing the last access time.
   attr_reader :atime
@@ -121,17 +121,20 @@ class File::Stat
       end
 
       # Not supported and/or meaningless on MS Windows
-      @dev_major     = nil
-      @dev_minor     = nil
-      @readable      = true # TODO: Make this work
-      @readable_real = true # TODO: Same as readable
-      @rdev_major    = nil
-      @rdev_minor    = nil
-      @setgid        = false
-      @setuid        = false
-      @sticky        = false
-      @writable      = true  # TODO: Make this work
-      @writable_real = true  # TODO: Same as writeable
+      @dev_major      = nil
+      @dev_minor      = nil
+      @readable       = true # TODO: Make this work
+      @readable_real  = true # TODO: Same as readable
+      @rdev_major     = nil
+      @rdev_minor     = nil
+      @setgid         = false
+      @setuid         = false
+      @sticky         = false
+      @world_readable = true
+      @world_writable = true
+      @writable_real  = true  # TODO: Same as writeable
+      @writable       = true  # TODO: Make this work
+      @writable_real  = true  # TODO: Same as writeable
 
       # Originally used GetBinaryType, but it only worked
       # for .exe files, and it could return false positives.
@@ -368,6 +371,18 @@ class File::Stat
   # The user id is the RID of the SID.
   def uid(full_sid = false)
     full_sid ? @user_sid : @uid
+  end
+
+  # Meaningless on MS Windows.
+  #
+  def world_readable?
+    @world_readable
+  end
+
+  # Meaningless on MS Windows.
+  #
+  def world_writable?
+    @world_writable
   end
 
   # Meaningless on MS Windows.
