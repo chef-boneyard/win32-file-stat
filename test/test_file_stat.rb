@@ -179,7 +179,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   # Not sure how to test properly in a generic way, but works on my local network
   test "dev works on unc path" do
-    omit_unless(Etc.getlogin == "djberge")
+    omit_unless(Etc.getlogin == "djberge" && File.exists?("//scipio/users"))
     assert_true(File::Stat.new("//scipio/users").dev > 1000)
   end
 
@@ -396,6 +396,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "readable? returns expected value" do
     assert_true(@stat.readable?)
+    assert_true(File::Stat.new(Dir.pwd).readable?)
+    assert_false(File::Stat.new(@@sys_file).readable?)
   end
 
   test "readable_real? basic functionality" do
