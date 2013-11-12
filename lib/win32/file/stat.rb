@@ -120,11 +120,15 @@ class File::Stat
         @dev   = data[:dwVolumeSerialNumber]
       end
 
+      @readable = access_check(path, GENERIC_READ)
+      @readable_real = @readable
+
+      @writable = access_check(path, GENERIC_WRITE)
+      @writable_real = @writable
+
       # Not supported and/or meaningless on MS Windows
       @dev_major      = nil
       @dev_minor      = nil
-      @readable       = true # TODO: Make this work
-      @readable_real  = true # TODO: Same as readable
       @rdev_major     = nil
       @rdev_minor     = nil
       @setgid         = false
@@ -132,9 +136,6 @@ class File::Stat
       @sticky         = false
       @world_readable = true
       @world_writable = true
-      @writable_real  = true  # TODO: Same as writeable
-      @writable       = true  # TODO: Make this work
-      @writable_real  = true  # TODO: Same as writeable
 
       # Originally used GetBinaryType, but it only worked
       # for .exe files, and it could return false positives.
@@ -303,13 +304,13 @@ class File::Stat
   # Meaningless for MS Windows
   #
   def readable?
-    access_check(@path,GENERIC_READ)
+    @readable
   end
 
   # Meaningless for MS Windows
   #
   def readable_real?
-    access_check(@path,GENERIC_READ)
+    @readable_real
   end
 
   # Returns whether or not the file is readonly.
@@ -388,13 +389,13 @@ class File::Stat
   # Meaningless on MS Windows.
   #
   def writable?
-    access_check(@path,GENERIC_WRITE)
+    @writable
   end
 
   # Meaningless on MS Windows.
   #
   def writable_real?
-    access_check(@path,GENERIC_WRITE)
+    @writable_real
   end
 
   # Returns whether or not the file size is zero.
