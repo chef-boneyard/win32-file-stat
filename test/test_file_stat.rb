@@ -546,6 +546,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "writable? returns expected value" do
     assert_true(@stat.writable?)
+    assert_true(File::Stat.new(Dir.pwd).writable?)
+    assert_false(File::Stat.new(@@sys_file).writable?)
   end
 
   test "writable_real? basic functionality" do
