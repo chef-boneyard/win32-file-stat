@@ -303,13 +303,13 @@ class File::Stat
   # Meaningless for MS Windows
   #
   def readable?
-    @readable
+    access_check(@path,GENERIC_READ)
   end
 
   # Meaningless for MS Windows
   #
   def readable_real?
-    @readable_real
+    access_check(@path,GENERIC_READ)
   end
 
   # Returns whether or not the file is readonly.
@@ -388,13 +388,13 @@ class File::Stat
   # Meaningless on MS Windows.
   #
   def writable?
-    @writable
+    access_check(@path,GENERIC_WRITE)
   end
 
   # Meaningless on MS Windows.
   #
   def writable_real?
-    @writable_real
+    access_check(@path,GENERIC_WRITE)
   end
 
   # Returns whether or not the file size is zero.
@@ -709,6 +709,57 @@ class File::Stat
     end
 
     sid
+  end
+
+  # Returns whether or not the current process has given access rights for +path+.
+  def access_check(path,access_rights)
+    wfile = path.wincode
+    check = false
+    size_needed_ptr = FFI::MemoryPointer.new(:ulong)
+    if (!GetFileSecurity( wfile, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION, nil, 0, size_needed_ptr) &&
+            ERROR_INSUFFICIENT_BUFFER == FFI.errno)
+        size_needed  = size_needed_ptr.read_ulong
+        security_ptr = FFI::MemoryPointer.new(size_needed)
+        if (security_ptr && GetFileSecurity( wfile, OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION| DACL_SECURITY_INFORMATION, security_ptr, size_needed, size_needed_ptr ))
+            token = FFI::MemoryPointer.new(:uintptr_t)
+            if (OpenProcessToken( GetCurrentProcess(), TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ, token ))
+                token   = token.read_pointer.to_i
+                token2 = FFI::MemoryPointer.new(:uintptr_t)
+                if (DuplicateToken( token, SecurityImpersonation, token2 ))
+                    token2   = token2.read_pointer.to_i
+                    mapping = GENERIC_MAPPING.new
+                    privileges = PRIVILEGE_SET.new
+                    privileges[:PrivilegeCount] = 0
+                    privileges_length = privileges.size
+
+                    mapping[:GenericRead] = FILE_GENERIC_READ
+                    mapping[:GenericWrite] = FILE_GENERIC_WRITE
+                    mapping[:GenericExecute] = FILE_GENERIC_EXECUTE
+                    mapping[:GenericAll] = FILE_ALL_ACCESS
+
+                    rights_ptr = FFI::MemoryPointer.new(:ulong)
+                    rights_ptr.write_ulong(access_rights)
+                    MapGenericMask( rights_ptr, mapping)
+                    rights = rights_ptr.read_ulong
+
+                    result_ptr = FFI::MemoryPointer.new(:ulong)
+                    privileges_length_ptr = FFI::MemoryPointer.new(:ulong)
+                    privileges_length_ptr.write_ulong(privileges_length)
+                    granted_access_ptr = FFI::MemoryPointer.new(:ulong)
+
+                    if (AccessCheck( security_ptr, token2, rights,
+                            mapping, privileges, privileges_length_ptr, granted_access_ptr, result_ptr ))
+                        check = result_ptr.read_ulong==1
+                    else
+                       raise SystemCallError.new('AccessCheck', FFI.errno)
+                    end
+                    CloseHandle( token2 )
+                end
+                CloseHandle( token )
+            end
+        end
+    end
+    check
   end
 end
 

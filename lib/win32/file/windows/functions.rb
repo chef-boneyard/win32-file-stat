@@ -45,6 +45,9 @@ module Windows
       attach_pfunc :GetSecurityDescriptorOwner, [:ptr, :ptr, :ptr], :bool
       attach_pfunc :GetSecurityDescriptorGroup, [:ptr, :ptr, :ptr], :bool
       attach_pfunc :GetTokenInformation, [:handle, :int, :ptr, :dword, :ptr], :bool
+      attach_pfunc :DuplicateToken, [:handle, :dword, :ptr], :bool
+      attach_pfunc :MapGenericMask, [:ptr, :ptr], :void
+      attach_pfunc :AccessCheck, [:ptr, :handle, :dword, :ptr, :ptr, :ptr, :ptr, :ptr], :bool
     end
   end
 end
