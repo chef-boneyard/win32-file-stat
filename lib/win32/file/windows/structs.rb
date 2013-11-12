@@ -126,6 +126,30 @@ module Windows
           :Groups, [SID_AND_ATTRIBUTES, 128]
         )
       end
+
+      class GENERIC_MAPPING < FFI::Struct
+        layout(
+          :GenericRead, :ulong,
+          :GenericWrite, :ulong,
+          :GenericExecute, :ulong,
+          :GenericAll, :ulong
+        )
+      end
+
+      class LUID_AND_ATTRIBUTES < FFI::Struct
+        layout(
+          :Luid, LowHigh,
+          :Attributes, :ulong
+        )
+      end
+
+      class PRIVILEGE_SET < FFI::Struct
+        layout(
+          :PrivilegeCount, :ulong,
+          :Control, :ulong,
+          :Privilege, [LUID_AND_ATTRIBUTES, 1]
+        )
+      end
     end
   end
 end
