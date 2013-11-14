@@ -126,6 +126,9 @@ class File::Stat
       @writable = access_check(path, GENERIC_WRITE)
       @writable_real = @writable
 
+      @world_readable = access_check_world(path, FILE_READ_DATA)
+      @world_writable = access_check_world(path, FILE_WRITE_DATA)
+
       # Not supported and/or meaningless on MS Windows
       @dev_major      = nil
       @dev_minor      = nil
@@ -134,8 +137,6 @@ class File::Stat
       @setgid         = false
       @setuid         = false
       @sticky         = false
-      @world_readable = true
-      @world_writable = true
 
       # Originally used GetBinaryType, but it only worked
       # for .exe files, and it could return false positives.
@@ -794,6 +795,50 @@ class File::Stat
     end
 
     check
+  end
+
+  # Returns whether or not the Everyone has given access rights for +path+.
+  def access_check_world(path, access_rights)
+    wfile = path.wincode
+    check = false
+    size_needed_ptr = FFI::MemoryPointer.new(:ulong)
+
+    flags = DACL_SECURITY_INFORMATION
+
+    # First attempt, get the size needed
+    bool = GetFileSecurity(wfile, flags, nil, 0, size_needed_ptr)
+
+    # If it fails horribly here, assume the answer is no.
+    if !bool && FFI.errno != ERROR_INSUFFICIENT_BUFFER
+      return false
+    end
+
+    size_needed  = size_needed_ptr.read_ulong
+    security_ptr = FFI::MemoryPointer.new(size_needed)
+
+    # Second attempt, now with the needed size
+    if GetFileSecurity(wfile, flags, security_ptr, size_needed, size_needed_ptr)
+        present_ptr = FFI::MemoryPointer.new(:ulong)
+        pdacl_ptr = FFI::MemoryPointer.new(:pointer)
+        defaulted_ptr = FFI::MemoryPointer.new(:ulong)
+
+        bool = GetSecurityDescriptorDacl(security_ptr,present_ptr,pdacl_ptr,defaulted_ptr)
+        if !bool || present_ptr.read_ulong==0
+          return false
+        end
+        pdacl = pdacl_ptr.read_pointer
+        psid_ptr = FFI::MemoryPointer.new(:pointer)
+        ConvertStringSidToSid('S-1-1-0',psid_ptr)
+        psid = psid_ptr.read_pointer
+        trustee_ptr = FFI::MemoryPointer.new(TRUSTEE)
+        BuildTrusteeWithSid(trustee_ptr,psid)
+        rights_ptr = FFI::MemoryPointer.new(:ulong)
+        if GetEffectiveRightsFromAcl(pdacl,trustee_ptr,rights_ptr) == NO_ERROR
+          rights = rights_ptr.read_ulong
+          check = (rights & access_rights) == access_rights
+        end
+    end
+    return check
   end
 end
 
