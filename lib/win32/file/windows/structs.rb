@@ -150,6 +150,16 @@ module Windows
           :Privilege, [LUID_AND_ATTRIBUTES, 1]
         )
       end
+
+      class TRUSTEE < FFI::Struct
+        layout(
+          :pMultipleTrustee, :pointer,
+          :MultipleTrusteeOperation, :ulong,
+          :TrusteeForm, :ulong,
+          :TrusteeType, :ulong,
+          :ptstrName, :pointer
+        )
+      end
     end
   end
 end
