@@ -41,6 +41,7 @@ module Windows
       ffi_lib :advapi32
 
       attach_pfunc :ConvertSidToStringSid, :ConvertSidToStringSidA, [:ptr, :ptr], :bool
+      attach_pfunc :ConvertStringSidToSid, :ConvertStringSidToSidA, [:ptr, :ptr], :bool
       attach_pfunc :GetFileSecurity, :GetFileSecurityW, [:buf_in, :int, :ptr, :dword, :ptr], :bool
       attach_pfunc :GetSecurityDescriptorOwner, [:ptr, :ptr, :ptr], :bool
       attach_pfunc :GetSecurityDescriptorGroup, [:ptr, :ptr, :ptr], :bool
@@ -48,6 +49,9 @@ module Windows
       attach_pfunc :DuplicateToken, [:handle, :dword, :ptr], :bool
       attach_pfunc :MapGenericMask, [:ptr, :ptr], :void
       attach_pfunc :AccessCheck, [:ptr, :handle, :dword, :ptr, :ptr, :ptr, :ptr, :ptr], :bool
+      attach_pfunc :BuildTrusteeWithSid, :BuildTrusteeWithSidW, [:ptr, :ptr], :void
+      attach_pfunc :GetSecurityDescriptorDacl, [:ptr, :ptr, :ptr, :ptr], :bool
+      attach_pfunc :GetEffectiveRightsFromAcl, :GetEffectiveRightsFromAclW, [:ptr, :ptr, :ptr], :dword
     end
   end
 end
