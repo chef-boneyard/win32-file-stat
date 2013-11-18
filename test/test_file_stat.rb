@@ -539,6 +539,28 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_match("S-1-", @stat.uid(true))
   end
 
+  test "world_readable? basic functionality" do
+    assert_respond_to(@stat, :world_readable?)
+    assert_boolean(@stat.world_readable?)
+  end
+
+  # TODO: Find or create a file that returns true.
+  test "world_readable? returns expected result" do
+    assert_false(@stat.world_readable?)
+    assert_false(File::Stat.new("C:/").world_readable?)
+  end
+
+  test "world_writable? basic functionality" do
+    assert_respond_to(@stat, :world_writable?)
+    assert_boolean(@stat.world_writable?)
+  end
+
+  # TODO: Find or create a file that returns true.
+  test "world_writable? returns expected result" do
+    assert_false(@stat.world_writable?)
+    assert_false(File::Stat.new("C:/").world_writable?)
+  end
+
   test "writable? basic functionality" do
     assert_respond_to(@stat, :writable?)
     assert_boolean(@stat.writable?)

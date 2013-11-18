@@ -832,27 +832,42 @@ class File::Stat
 
     # Second attempt, now with the needed size
     if GetFileSecurity(wfile, flags, security_ptr, size_needed, size_needed_ptr)
-        present_ptr = FFI::MemoryPointer.new(:ulong)
-        pdacl_ptr = FFI::MemoryPointer.new(:pointer)
+        present_ptr   = FFI::MemoryPointer.new(:ulong)
+        pdacl_ptr     = FFI::MemoryPointer.new(:pointer)
         defaulted_ptr = FFI::MemoryPointer.new(:ulong)
 
-        bool = GetSecurityDescriptorDacl(security_ptr,present_ptr,pdacl_ptr,defaulted_ptr)
-        if !bool || present_ptr.read_ulong==0
+        bool = GetSecurityDescriptorDacl(
+          security_ptr,
+          present_ptr,
+          pdacl_ptr,
+          defaulted_ptr
+        )
+
+        # If it fails, or the dacl isn't present, return false.
+        if !bool || present_ptr.read_ulong == 0
           return false
         end
+
         pdacl = pdacl_ptr.read_pointer
         psid_ptr = FFI::MemoryPointer.new(:pointer)
-        ConvertStringSidToSid('S-1-1-0',psid_ptr)
+
+        # S-1-1-0 is the well known SID for "Everyone".
+        ConvertStringSidToSid('S-1-1-0', psid_ptr)
+
         psid = psid_ptr.read_pointer
         trustee_ptr = FFI::MemoryPointer.new(TRUSTEE)
-        BuildTrusteeWithSid(trustee_ptr,psid)
+
+        BuildTrusteeWithSid(trustee_ptr, psid)
+
         rights_ptr = FFI::MemoryPointer.new(:ulong)
-        if GetEffectiveRightsFromAcl(pdacl,trustee_ptr,rights_ptr) == NO_ERROR
+
+        if GetEffectiveRightsFromAcl(pdacl, trustee_ptr, rights_ptr) == NO_ERROR
           rights = rights_ptr.read_ulong
           check = (rights & access_rights) == access_rights
         end
     end
-    return check
+
+    check
   end
 end
 
