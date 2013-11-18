@@ -302,13 +302,15 @@ class File::Stat
     PathGetDriveNumber(fpath)
   end
 
-  # Meaningless for MS Windows
+  # Returns whether or not the file is readable by the process owner.
+  #--
+  # In Windows terms, we're checking for GENERIC_READ privileges.
   #
   def readable?
     @readable
   end
 
-  # Meaningless for MS Windows
+  # A synonym for File::Stat#readable?
   #
   def readable_real?
     @readable_real
@@ -367,33 +369,45 @@ class File::Stat
     @temporary
   end
 
-  # Returns the user ID of the file. If full_sid is true, then the full
-  # string sid is returned instead.
+  # Returns the user ID of the file. If the +full_sid+ is true, then the
+  # full string sid is returned instead.
   #--
   # The user id is the RID of the SID.
+  #
   def uid(full_sid = false)
     full_sid ? @user_sid : @uid
   end
 
-  # Meaningless on MS Windows.
+  # Returns whether or not the file is readable by others. Note that this
+  # merely returns true or false, not permission bits (or nil).
+  #--
+  # In Windows terms, this is checking the access right FILE_READ_DATA against
+  # the well-known SID "S-1-1-0", aka "Everyone".
+  #
   #
   def world_readable?
     @world_readable
   end
 
-  # Meaningless on MS Windows.
+  # Returns whether or not the file is writable by others. Note that this
+  # merely returns true or false, not permission bits (or nil).
+  #--
+  # In Windows terms, this is checking the access right FILE_WRITE_DATA against
+  # the well-known SID "S-1-1-0", aka "Everyone".
   #
   def world_writable?
     @world_writable
   end
 
-  # Meaningless on MS Windows.
+  # Returns whether or not the file is writable by the current process owner.
+  #--
+  # In Windows terms, we're checking for GENERIC_WRITE privileges.
   #
   def writable?
     @writable
   end
 
-  # Meaningless on MS Windows.
+  # A synonym for File::Stat#readable?
   #
   def writable_real?
     @writable_real
