@@ -16,7 +16,9 @@
   optionally be passed a boolean argument. If true, it will return the full
   string SID.
 * The #grpowned? method was implemented.
-* THe #ino method was implemented.
+* The #ino method was implemented.
+* Added working implementations of the #readable?, #writable?,
+  #world_readable? and #world_writable? methods.
 
 == 1.3.6 - 24-Mar-2012
 * Eliminated some warnings for Ruby 1.9.3.
