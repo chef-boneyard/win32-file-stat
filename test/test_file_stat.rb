@@ -170,6 +170,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "dev custom method returns expected value" do
+    notify "May fail on JRuby" if @@jruby
     assert_equal(2, File::Stat.new("C:\\").dev)
     assert_equal(-1, File::Stat.new("NUL").dev)
   end
