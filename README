@@ -22,7 +22,6 @@
   * The File::Stat#blksize method returns a meaningful value.
   * The File::Stat#blockdev method works more accurately.
   * The File::Stat#blocks method returns a meaningful value.
-  * The File::Stat#dev method returns the volume serial number.
   * The File::Stat#executable? method works properly.
   * The File::Stat#executable_real? is an alias for File::Stat#executable_real?
   * The File::Stat#file? method works properly.
@@ -35,8 +34,12 @@
   * The File::Stat#gid method returns a meaningful value.
   * The File::Stat#owned? method now works properly.
   * The File::Stat#grpowned? method now works properly.
+  * The File::Stat#rdev method returns the volume serial number.
   * Adds several new attribute methods, such as archive?, hidden?, etc.
   * The inspect and pretty print output has been customized.
+
+== Differences with this version and the previous versions.
+  * The File::Stat#dev method has reverted to returning a drive number.
   
 == Known issues
   You should not require 'win32/file/stat' directly. Instead, require the
