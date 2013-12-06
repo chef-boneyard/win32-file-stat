@@ -8,7 +8,8 @@ module Windows
       MAX_PATH = 260
       MAXDWORD = 0xFFFFFFFF
 
-      INVALID_HANDLE_VALUE = FFI::Pointer.new(-1).address
+      # Normally just FFI::Pointer.new(-1).address, but we need JRuby to work, too.
+      INVALID_HANDLE_VALUE = (1<<FFI::Platform::ADDRESS_SIZE)-1
 
       ERROR_FILE_NOT_FOUND = 2
       ERROR_NO_MORE_FILES  = 18
