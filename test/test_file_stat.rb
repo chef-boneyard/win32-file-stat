@@ -38,6 +38,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     @@exe_file = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.exe')
     @@sys_file = 'C:/pagefile.sys'
     @@elevated = Win32::Security.elevated_security?
+    @@jruby    = RUBY_PLATFORM == 'java'
 
     File.open(@@txt_file, "w"){ |fh| fh.print "This is a test\nHello" }
     File.open(@@exe_file, "wb"){ |fh| fh.print "This is a test" }
@@ -163,32 +164,24 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.compressed?)
   end
 
-  test "dev basic functionality" do
-    assert_respond_to(@stat, :dev)
-    assert_nothing_raised{ @stat.dev }
-    assert_kind_of(Numeric, @stat.dev)
+  test "dev custom method basic functionality" do
+    assert_respond_to(@stat, :rdev)
+    assert_kind_of(Fixnum, @stat.rdev)
   end
 
-  test "dev returns a sane value" do
-    assert_true(File::Stat.new("C:\\Program Files").dev > 1000)
-  end
-
-  test "dev returns nil on special files" do
-    assert_equal(nil, File::Stat.new("NUL").dev)
-  end
-
-  # Not sure how to test properly in a generic way, but works on my local network
-  test "dev works on unc path" do
-    omit_unless(Etc.getlogin == "djberge" && File.exists?("//scipio/users"))
-    assert_true(File::Stat.new("//scipio/users").dev > 1000)
+  test "dev custom method returns expected value" do
+    assert_equal(2, File::Stat.new("C:\\").dev)
+    assert_equal(-1, File::Stat.new("NUL").dev)
   end
 
   test "dev_major defined and always returns nil" do
+    omit_if(@@jruby) # https://github.com/jnr/jnr-posix/issues/23
     assert_respond_to(@stat, :dev_major)
     assert_nil(@stat.dev_major)
   end
 
   test "dev_minor defined and always returns nil" do
+    omit_if(@@jruby) # https://github.com/jnr/jnr-posix/issues/23
     assert_respond_to(@stat, :dev_minor)
     assert_nil(@stat.dev_minor)
   end
@@ -434,14 +427,36 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.reparse_point?)
   end
 
-  test "rdev custom method basic functionality" do
+  test "rdev basic functionality" do
     assert_respond_to(@stat, :rdev)
-    assert_kind_of(Fixnum, @stat.rdev)
+    assert_nothing_raised{ @stat.rdev }
+    assert_kind_of(Numeric, @stat.rdev)
   end
 
-  test "rdev custom method returns expected value" do
-    assert_equal(2, File::Stat.new("C:\\").rdev)
-    assert_equal(-1, File::Stat.new("NUL").rdev)
+  test "rdev returns a sane value" do
+    assert_true(File::Stat.new("C:\\Program Files").rdev > 1000)
+  end
+
+  test "rdev returns nil on special files" do
+    assert_equal(nil, File::Stat.new("NUL").rdev)
+  end
+
+  # Not sure how to test properly in a generic way, but works on my local network
+  test "rdev works on unc path" do
+    omit_unless(Etc.getlogin == "djberge" && File.exists?("//scipio/users"))
+    assert_true(File::Stat.new("//scipio/users").rdev > 1000)
+  end
+
+  test "rdev_major defined and always returns nil" do
+    omit_if(@@jruby) # https://github.com/jnr/jnr-posix/issues/23
+    assert_respond_to(@stat, :rdev_major)
+    assert_nil(@stat.rdev_major)
+  end
+
+  test "rdev_minor defined and always returns nil" do
+    omit_if(@@jruby) # https://github.com/jnr/jnr-posix/issues/23
+    assert_respond_to(@stat, :rdev_minor)
+    assert_nil(@stat.rdev_minor)
   end
 
   test "setgid is set to false" do
@@ -615,5 +630,6 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     @@exe_file  = nil
     @@sys_file  = nil
     @@elevated  = nil
+    @@jruby     = nil
   end
 end
