@@ -301,6 +301,11 @@ class File::Stat
 
   # Returns the drive number of the disk containing the file, or -1 if there
   # is no associated drive number.
+  #--
+  # This differs sllightly from MRI in that it will return -1 if the path
+  # does not have a drive letter.
+  #
+  # Note: Bug in JRuby as of JRuby 1.7.8, which does not expand NUL properly.
   #
   def dev
     fpath = File.expand_path(@path).wincode
@@ -901,13 +906,13 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  p File::Stat.new("C:/Users/djberge/test.txt").dev
-  p File::Stat.new("C:/Users/djberge/test.txt").rdev
-  p File::Stat.new("C:/Users/djberge/test.txt").dev_major
-  p File::Stat.new("C:/Users/djberge/test.txt").dev_minor
-  p File::Stat.new("C:/Users/djberge/test.txt").rdev_major
-  p File::Stat.new("C:/Users/djberge/test.txt").rdev_minor
-  p File::Stat.new("C:/Users/djberge/test.txt").sticky?
+  #p File::Stat.new("C:/Users/djberge/test.txt").dev
+  #p File::Stat.new("C:/Users/djberge/test.txt").rdev
+  #p File::Stat.new("C:/Users/djberge/test.txt").dev_major
+  #p File::Stat.new("C:/Users/djberge/test.txt").dev_minor
+  #p File::Stat.new("C:/Users/djberge/test.txt").rdev_major
+  #p File::Stat.new("C:/Users/djberge/test.txt").rdev_minor
+  #p File::Stat.new("C:/Users/djberge/test.txt").sticky?
   #p File::Stat.new("C:/Users/djberge/test.txt").ino
   #p File::Stat.new("C:/Users/djberge/test.txt").gid
   #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
@@ -921,4 +926,5 @@ if $0 == __FILE__
   #p File::Stat.new(Dir.pwd).uid
   #p File::Stat.new("C:/").uid(true)
   #p File::Stat.new("C:/pagefile.sys").uid
+  p File::Stat.new("NUL").dev
 end
