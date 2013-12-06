@@ -12,10 +12,12 @@ class File::Stat
 
   # We have to undefine these first in order to avoid redefinition warnings.
   undef_method :atime, :ctime, :mtime, :blksize, :blockdev?, :blocks, :chardev?
-  undef_method :dev, :directory?, :executable?, :executable_real?, :file?
+  undef_method :dev, :dev_major, :dev_minor, :directory?, :executable?
+  undef_method :executable_real?, :file?
   undef_method :ftype, :gid, :grpowned?, :ino, :mode, :nlink, :owned?
-  undef_method :pipe?, :readable?, :readable_real?, :rdev
-  undef_method :size, :size?, :socket?, :symlink?, :uid
+  undef_method :pipe?, :readable?, :readable_real?, :rdev, :rdev_major
+  undef_method :rdev_minor, :setuid?, :setgid?
+  undef_method :size, :size?, :socket?, :sticky?, :symlink?, :uid
   undef_method :world_readable?, :world_writable?, :writable?, :writable_real?
   undef_method :<=>, :inspect, :pretty_print, :zero?
 
@@ -35,7 +37,7 @@ class File::Stat
   attr_reader :blocks
 
   # The serial number of the file's volume.
-  attr_reader :dev
+  attr_reader :rdev
 
   # The file's unique identifier. Only valid for regular files.
   attr_reader :ino
@@ -48,6 +50,9 @@ class File::Stat
 
   # The size of the file in bytes.
   attr_reader :size
+
+  # Nil on Windows
+  attr_reader :dev_major, :dev_minor, :rdev_major, :rdev_minor
 
   # The version of the win32-file-stat library
   VERSION = '1.4.0'
@@ -107,7 +112,7 @@ class File::Stat
 
         @nlink = 1 # Default from stat/wstat function.
         @ino   = nil
-        @dev   = nil
+        @rdev  = nil
       else
         data = BY_HANDLE_FILE_INFORMATION.new
 
@@ -117,7 +122,7 @@ class File::Stat
 
         @nlink = data[:nNumberOfLinks]
         @ino   = (data[:nFileIndexHigh] << 32) | data[:nFileIndexLow]
-        @dev   = data[:dwVolumeSerialNumber]
+        @rdev  = data[:dwVolumeSerialNumber]
       end
 
       @readable = access_check(path, GENERIC_READ)
@@ -297,7 +302,7 @@ class File::Stat
   # Returns the drive number of the disk containing the file, or -1 if there
   # is no associated drive number.
   #
-  def rdev
+  def dev
     fpath = File.expand_path(@path).wincode
     PathGetDriveNumber(fpath)
   end
@@ -338,6 +343,22 @@ class File::Stat
     @reparse_point
   end
 
+  # Returns false on MS Windows.
+  #--
+  # I had to explicitly define this because of a bug in JRuby.
+  #
+  def setgid?
+    @setgid
+  end
+
+  # Returns false on MS Windows.
+  #--
+  # I had to explicitly define this because of a bug in JRuby.
+  #
+  def setuid?
+    @setuid
+  end
+
   # Returns whether or not the file size is zero.
   #
   def size?
@@ -349,6 +370,14 @@ class File::Stat
   #
   def sparse?
     @sparse
+  end
+
+  # Returns false on MS Windows.
+  #--
+  # I had to explicitly define this because of a bug in JRuby.
+  #
+  def sticky?
+    @sticky
   end
 
   # Returns whether or not the file is a symlink.
@@ -872,7 +901,14 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  p File::Stat.new("C:/Users/djberge/test.txt").ino
+  p File::Stat.new("C:/Users/djberge/test.txt").dev
+  p File::Stat.new("C:/Users/djberge/test.txt").rdev
+  p File::Stat.new("C:/Users/djberge/test.txt").dev_major
+  p File::Stat.new("C:/Users/djberge/test.txt").dev_minor
+  p File::Stat.new("C:/Users/djberge/test.txt").rdev_major
+  p File::Stat.new("C:/Users/djberge/test.txt").rdev_minor
+  p File::Stat.new("C:/Users/djberge/test.txt").sticky?
+  #p File::Stat.new("C:/Users/djberge/test.txt").ino
   #p File::Stat.new("C:/Users/djberge/test.txt").gid
   #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
   #p File::Stat.new("C:/Users/djberge/test.txt").grpowned?
