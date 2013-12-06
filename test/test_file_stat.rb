@@ -175,6 +175,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_equal(-1, File::Stat.new("NUL").dev)
   end
 
+  test "dev custom method accepts an optional argument" do
+    assert_nothing_raised{ File::Stat.new("C:\\").dev(true) }
+    assert_kind_of(String, File::Stat.new("C:\\").dev(true))
+  end
+
+  test "dev custom method with optional argument returns expected value" do
+    notify "May fail on JRuby" if @@jruby
+    assert_equal("C:", File::Stat.new("C:\\").dev(true))
+    assert_nil(File::Stat.new("NUL").dev(true))
+  end
+
   test "dev_major defined and always returns nil" do
     omit_if(@@jruby) # https://github.com/jnr/jnr-posix/issues/23
     assert_respond_to(@stat, :dev_major)

@@ -301,15 +301,28 @@ class File::Stat
 
   # Returns the drive number of the disk containing the file, or -1 if there
   # is no associated drive number.
+  #
+  # If the +letter+ option is true, returns the drive letter instead. If there
+  # is no drive letter, it will return nil.
   #--
-  # This differs sllightly from MRI in that it will return -1 if the path
+  # This differs slightly from MRI in that it will return -1 if the path
   # does not have a drive letter.
   #
   # Note: Bug in JRuby as of JRuby 1.7.8, which does not expand NUL properly.
   #
-  def dev
+  def dev(letter = false)
     fpath = File.expand_path(@path).wincode
-    PathGetDriveNumber(fpath)
+    num = PathGetDriveNumber(fpath)
+
+    if letter
+      if num == -1
+        nil
+      else
+        (num + 'A'.ord).chr + ':'
+      end
+    else
+      num
+    end
   end
 
   # Returns whether or not the file is readable by the process owner.
@@ -906,7 +919,11 @@ class File::Stat
 end
 
 if $0 == __FILE__
-  #p File::Stat.new("C:/Users/djberge/test.txt").dev
+  p File::Stat.new("C:/Users/djberge/test.txt").dev
+  p File::Stat.new("C:/Users/djberge/test.txt").dev(true)
+  p File::Stat.new("NUL").dev
+  p File::Stat.new("NUL").dev(true)
+
   #p File::Stat.new("C:/Users/djberge/test.txt").rdev
   #p File::Stat.new("C:/Users/djberge/test.txt").dev_major
   #p File::Stat.new("C:/Users/djberge/test.txt").dev_minor
@@ -926,5 +943,4 @@ if $0 == __FILE__
   #p File::Stat.new(Dir.pwd).uid
   #p File::Stat.new("C:/").uid(true)
   #p File::Stat.new("C:/pagefile.sys").uid
-  p File::Stat.new("NUL").dev
 end
