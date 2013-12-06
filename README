@@ -9,8 +9,8 @@
   gem install win32-file-stat
 
 == Synopsis
-  # Don't 'require' like this in practice - see 'Known Issues' below
-  require 'win32/file/stat'
+  #require 'win32/file/stat' # Don't do this, see below.
+  require 'win32/file' # Do this instead. Requires win32-file gem.
 
   stat = File::Stat.new('file.txt')
   p stat.size
@@ -38,8 +38,10 @@
   * Adds several new attribute methods, such as archive?, hidden?, etc.
   * The inspect and pretty print output has been customized.
 
-== Differences with this version and the previous versions.
-  * The File::Stat#dev method has reverted to returning a drive number.
+== Changes between this version and the previous versions.
+  * The File::Stat#dev method has reverted to returning a drive number by
+    default. However, you can pass an optional boolean argument to make it
+    return the drive letter instead.
   
 == Known issues
   You should not require 'win32/file/stat' directly. Instead, require the
