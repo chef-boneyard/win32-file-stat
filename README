@@ -9,8 +9,8 @@
   gem install win32-file-stat
 
 == Synopsis
-  #require 'win32/file/stat' # Don't do this, see below.
-  require 'win32/file' # Do this instead. Requires win32-file gem.
+  # require 'win32/file/stat' # Unwise. See below.
+  require 'win32/file' # Preferred. See below.
 
   stat = File::Stat.new('file.txt')
   p stat.size
@@ -35,7 +35,6 @@
   * The File::Stat#owned? method now works properly.
   * The File::Stat#grpowned? method now works properly.
   * The File::Stat#rdev method returns the volume serial number.
-  * Adds several new attribute methods, such as archive?, hidden?, etc.
   * The inspect and pretty print output has been customized.
 
 == Changes between this version and the previous versions.
