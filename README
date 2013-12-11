@@ -23,7 +23,7 @@
   * The File::Stat#blockdev method works more accurately.
   * The File::Stat#blocks method returns a meaningful value.
   * The File::Stat#executable? method works properly.
-  * The File::Stat#executable_real? is an alias for File::Stat#executable_real?
+  * The File::Stat#executable_real? is an alias for File::Stat#executable?
   * The File::Stat#file? method works properly.
   * The File::Stat#ftype method works more accurately.
   * The File::Stat#pipe method works properly.
