@@ -258,10 +258,15 @@ class File::Stat
   # string sid is returned instead.
   #--
   # The user id is the RID of the SID.
+  #
   def gid(full_sid = false)
     full_sid ? @grp_sid : @gid
   end
 
+  # Returns true if the process owner's ID is the same as one of the file's groups.
+  #--
+  # Internally we're checking the process sid against the TokenGroups sid.
+  #
   def grpowned?
     @grpowned
   end
@@ -294,7 +299,8 @@ class File::Stat
   end
 
   # Returns whether or not the current process owner is the owner of the file.
-  #
+  #--
+  # Internally we're checking the process sid against the owner's sid.
   def owned?
     @owned
   end
@@ -549,6 +555,7 @@ class File::Stat
   private
 
   # This is based on fileattr_to_unixmode in win32.c
+  #
   def get_mode
     mode = 0
 
@@ -581,6 +588,7 @@ class File::Stat
   end
 
   # Returns whether or not +path+ is a block device.
+  #
   def get_blockdev(path)
     ptr = FFI::MemoryPointer.from_string(path.wincode)
 
@@ -633,6 +641,7 @@ class File::Stat
   end
 
   # Generic method for retrieving a handle.
+  #
   def get_handle(path)
     fpath = path.wincode
 
@@ -655,6 +664,7 @@ class File::Stat
   end
 
   # Determines whether or not +file+ is a symlink.
+  #
   def get_symlink(file)
     bool = false
     fpath = File.expand_path(file).wincode
@@ -678,6 +688,7 @@ class File::Stat
   end
 
   # Returns the filetype for the given +handle+.
+  #
   def get_filetype(handle)
     file_type = GetFileType(handle)
 
@@ -689,6 +700,7 @@ class File::Stat
   end
 
   # Return a sid of the file's owner.
+  #
   def get_file_sid(file, info)
     wfile = file.wincode
     size_needed_ptr = FFI::MemoryPointer.new(:ulong)
@@ -731,6 +743,7 @@ class File::Stat
   end
 
   # Return the sid of the current process.
+  #
   def get_current_process_sid(token_type)
     token = FFI::MemoryPointer.new(:uintptr_t)
     sid = nil
@@ -775,6 +788,7 @@ class File::Stat
   end
 
   # Returns whether or not the current process has given access rights for +path+.
+  #
   def access_check(path, access_rights)
     wfile = path.wincode
     check = false
@@ -859,6 +873,7 @@ class File::Stat
   end
 
   # Returns whether or not the Everyone has given access rights for +path+.
+  #
   def access_check_world(path, access_rights)
     wfile = path.wincode
     check = false
@@ -916,31 +931,4 @@ class File::Stat
 
     check
   end
-end
-
-if $0 == __FILE__
-  p File::Stat.new("C:/Users/djberge/test.txt").dev
-  p File::Stat.new("C:/Users/djberge/test.txt").dev(true)
-  p File::Stat.new("NUL").dev
-  p File::Stat.new("NUL").dev(true)
-
-  #p File::Stat.new("C:/Users/djberge/test.txt").rdev
-  #p File::Stat.new("C:/Users/djberge/test.txt").dev_major
-  #p File::Stat.new("C:/Users/djberge/test.txt").dev_minor
-  #p File::Stat.new("C:/Users/djberge/test.txt").rdev_major
-  #p File::Stat.new("C:/Users/djberge/test.txt").rdev_minor
-  #p File::Stat.new("C:/Users/djberge/test.txt").sticky?
-  #p File::Stat.new("C:/Users/djberge/test.txt").ino
-  #p File::Stat.new("C:/Users/djberge/test.txt").gid
-  #p File::Stat.new("C:/Users/djberge/test.txt").gid(true)
-  #p File::Stat.new("C:/Users/djberge/test.txt").grpowned?
-
-  #p File::Stat.new("E:/")
-  #p File::Stat.new("E:/").gid
-  #p File::Stat.new("E:/").gid(true)
-
-  #File::Stat.new(Dir.pwd)
-  #p File::Stat.new(Dir.pwd).uid
-  #p File::Stat.new("C:/").uid(true)
-  #p File::Stat.new("C:/pagefile.sys").uid
 end
