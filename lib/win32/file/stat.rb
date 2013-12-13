@@ -55,7 +55,7 @@ class File::Stat
   attr_reader :dev_major, :dev_minor, :rdev_major, :rdev_minor
 
   # The version of the win32-file-stat library
-  VERSION = '1.4.0'
+  WIN32_FILE_STAT_VERSION = '1.4.0'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
