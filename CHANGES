@@ -1,4 +1,4 @@
-== 1.4.0 - ???
+== 1.4.0 - 16-Dec-2013
 * Conversion to FFI.
 * Now requires Ruby 1.9 or later.
 * The #mode method now more closely matches core MRI.
@@ -19,6 +19,7 @@
 * The #ino method was implemented.
 * Added working implementations of the #readable?, #writable?,
   #world_readable? and #world_writable? methods.
+* The VERSION constant was changed to WIN32_FILE_STAT_VERSION.
 
 == 1.3.6 - 24-Mar-2012
 * Eliminated some warnings for Ruby 1.9.3.
