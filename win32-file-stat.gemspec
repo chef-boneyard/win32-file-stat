@@ -10,7 +10,8 @@ Gem::Specification.new do |spec|
   spec.files     = Dir['**/*'].reject{ |f| f.include?('git') }
 
   spec.rubyforge_project = 'Win32Utils'
-  spec.extra_rdoc_files  = ['README', 'CHANGES', 'MANIFEST']
+  spec.extra_rdoc_files = ['README', 'CHANGES', 'MANIFEST']
+  spec.required_ruby_version = ">= 1.9.0"
 
   spec.add_dependency('ffi')
   spec.add_development_dependency('test-unit')
