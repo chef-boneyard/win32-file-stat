@@ -70,7 +70,7 @@
   you would end up using the pretty_print in pp.rb, which would break.
 
 == Copyright
-  (C) 2003-2013, Daniel J. Berger, All Rights Reserved.
+  (C) 2003-2014, Daniel J. Berger, All Rights Reserved.
 
 == License
   Artistic 2.0
