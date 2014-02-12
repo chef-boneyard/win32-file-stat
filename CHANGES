@@ -1,3 +1,8 @@
+== 1.4.1 - 12-Feb-2014
+* The #writable and #writable_real methods now always return fals if the file
+  has been marked readonly.
+* Fixed an rdev test and added a writable test.
+
 == 1.4.0 - 16-Dec-2013
 * Conversion to FFI.
 * Now requires Ruby 1.9 or later.
