@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name      = 'win32-file-stat'
-  spec.version   = '1.4.0'
+  spec.version   = '1.4.1'
   spec.authors   = ['Daniel J. Berger', 'Park Heesob']
   spec.license   = 'Artistic 2.0'
   spec.email     = 'djberg96@gmail.com'
