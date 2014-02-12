@@ -55,7 +55,7 @@ class File::Stat
   attr_reader :dev_major, :dev_minor, :rdev_major, :rdev_minor
 
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.4.0'
+  WIN32_FILE_STAT_VERSION = '1.4.1'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
@@ -125,15 +125,6 @@ class File::Stat
         @rdev  = data[:dwVolumeSerialNumber]
       end
 
-      @readable = access_check(path, GENERIC_READ)
-      @readable_real = @readable
-
-      @writable = access_check(path, GENERIC_WRITE)
-      @writable_real = @writable
-
-      @world_readable = access_check_world(path, FILE_READ_DATA)
-      @world_writable = access_check_world(path, FILE_WRITE_DATA)
-
       # Not supported and/or meaningless on MS Windows
       @dev_major      = nil
       @dev_minor      = nil
@@ -178,6 +169,15 @@ class File::Stat
       @temporary     = @attr & FILE_ATTRIBUTE_TEMPORARY > 0
 
       @mode = get_mode
+
+      @readable = access_check(path, GENERIC_READ)
+      @readable_real = @readable
+
+      @writable = access_check(path, GENERIC_WRITE) && !@readonly
+      @writable_real = @writable
+
+      @world_readable = access_check_world(path, FILE_READ_DATA)
+      @world_writable = access_check_world(path, FILE_WRITE_DATA) && !@readonly
 
       if @reparse_point
         @symlink = get_symlink(path)
