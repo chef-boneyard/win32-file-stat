@@ -53,7 +53,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "version is set to expected value" do
-    assert_equal('1.4.0', File::Stat::WIN32_FILE_STAT_VERSION)
+    assert_equal('1.4.1', File::Stat::WIN32_FILE_STAT_VERSION)
   end
 
   test "constructor does not modify argument" do
@@ -166,7 +166,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   test "dev custom method basic functionality" do
     assert_respond_to(@stat, :rdev)
-    assert_kind_of(Fixnum, @stat.rdev)
+    assert_kind_of(Numeric, @stat.rdev)
   end
 
   test "dev custom method returns expected value" do
@@ -597,6 +597,13 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_true(@stat.writable?)
     assert_true(File::Stat.new(Dir.pwd).writable?)
     assert_false(File::Stat.new(@@sys_file).writable?)
+  end
+
+  test "a file marked as readonly is not considered writable" do
+    File.chmod(0644, @@txt_file)
+    assert_true(File::Stat.new(@@txt_file).writable?)
+    File.chmod(0444, @@txt_file)
+    assert_false(File::Stat.new(@@txt_file).writable?)
   end
 
   test "writable_real? basic functionality" do
