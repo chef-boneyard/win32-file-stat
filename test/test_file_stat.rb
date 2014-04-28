@@ -9,6 +9,7 @@ require 'ffi'
 require 'test-unit'
 require 'win32/file/stat'
 require 'win32/security'
+require 'pathname'
 
 class TC_Win32_File_Stat < Test::Unit::TestCase
   extend FFI::Library
@@ -53,13 +54,17 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "version is set to expected value" do
-    assert_equal('1.4.1', File::Stat::WIN32_FILE_STAT_VERSION)
+    assert_equal('1.4.2', File::Stat::WIN32_FILE_STAT_VERSION)
   end
 
   test "constructor does not modify argument" do
     expected = File.join(File.expand_path(File.dirname(__FILE__)), 'test_file.txt')
     File::Stat.new(@@txt_file)
     assert_equal(expected, @@txt_file)
+  end
+
+  test "constructor allows arguments that implement to_path" do
+    assert_nothing_raised{ File::Stat.new(Pathname.new(Dir.pwd)) }
   end
 
   test "archive? method basic functionality" do
