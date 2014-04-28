@@ -55,7 +55,7 @@ class File::Stat
   attr_reader :dev_major, :dev_minor, :rdev_major, :rdev_minor
 
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.4.1'
+  WIN32_FILE_STAT_VERSION = '1.4.2'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
@@ -63,7 +63,7 @@ class File::Stat
   # the file after that point will not be reflected.
   #
   def initialize(file)
-    raise TypeError unless file.is_a?(String)
+    file = string_check(file)
 
     path  = file.tr('/', "\\")
     @path = path
@@ -553,6 +553,14 @@ class File::Stat
   end
 
   private
+
+  # Allow stringy arguments
+  def string_check(arg)
+    return arg if arg.is_a?(String)
+    return arg.send(:to_str) if arg.respond_to?(:to_str, true) # MRI honors private to_str
+    return arg.to_path if arg.respond_to?(:to_path)
+    raise TypeError
+  end
 
   # This is based on fileattr_to_unixmode in win32.c
   #
