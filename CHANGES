@@ -1,5 +1,9 @@
+== 1.4.2 - 28-Apr-2014
+* Allow the File::Stat.new method to accept objects that respond to to_str
+  or to_path to mimic MRI.
+
 == 1.4.1 - 12-Feb-2014
-* The #writable and #writable_real methods now always return fals if the file
+* The #writable and #writable_real methods now always return false if the file
   has been marked readonly.
 * Fixed an rdev test and added a writable test.
 
