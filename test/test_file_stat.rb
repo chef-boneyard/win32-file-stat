@@ -604,6 +604,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(File::Stat.new(@@sys_file).writable?)
   end
 
+  test "writable? returns expected result for system directory" do
+    dir = "C:/Program Files"
+    if @@elevated
+      assert_true(File::Stat.new(dir).writable?)
+    else
+      assert_false(File::Stat.new(dir).writable?)
+    end
+  end
+
   test "a file marked as readonly is not considered writable" do
     File.chmod(0644, @@txt_file)
     assert_true(File::Stat.new(@@txt_file).writable?)

@@ -1,10 +1,13 @@
+== 1.4.3 - ???
+* The #writable? method now ignores the readonly attribute if it's a directory.
+
 == 1.4.2 - 28-Apr-2014
 * Allow the File::Stat.new method to accept objects that respond to to_str
   or to_path to mimic MRI.
 
 == 1.4.1 - 12-Feb-2014
-* The #writable and #writable_real methods now always return false if the file
-  has been marked readonly.
+* The #writable? and #writable_real? methods now always return false if the
+  file has been marked readonly.
 * Fixed an rdev test and added a writable test.
 
 == 1.4.0 - 16-Dec-2013
