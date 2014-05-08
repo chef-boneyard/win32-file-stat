@@ -173,7 +173,13 @@ class File::Stat
       @readable = access_check(path, GENERIC_READ)
       @readable_real = @readable
 
-      @writable = access_check(path, GENERIC_WRITE) && !@readonly
+      # The MSDN docs say that the readonly attribute is honored for directories
+      if @directory
+        @writable = access_check(path, GENERIC_WRITE)
+      else
+        @writable = access_check(path, GENERIC_WRITE) && !@readonly
+      end
+
       @writable_real = @writable
 
       @world_readable = access_check_world(path, FILE_READ_DATA)
