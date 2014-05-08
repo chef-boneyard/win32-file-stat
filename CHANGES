@@ -1,4 +1,4 @@
-== 1.4.3 - ???
+== 1.4.3 - 8-May-2014
 * The #writable? method now ignores the readonly attribute if it's a directory.
 
 == 1.4.2 - 28-Apr-2014
