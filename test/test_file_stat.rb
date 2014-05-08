@@ -54,7 +54,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "version is set to expected value" do
-    assert_equal('1.4.2', File::Stat::WIN32_FILE_STAT_VERSION)
+    assert_equal('1.4.3', File::Stat::WIN32_FILE_STAT_VERSION)
   end
 
   test "constructor does not modify argument" do
