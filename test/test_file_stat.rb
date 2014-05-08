@@ -460,7 +460,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   # Not sure how to test properly in a generic way, but works on my local network
   test "rdev works on unc path" do
-    omit_unless(Etc.getlogin == "djberge" && File.exists?("//scipio/users"))
+    omit_unless(Etc.getlogin == "djberge" && File.exist?("//scipio/users"))
     assert_true(File::Stat.new("//scipio/users").rdev > 1000)
   end
 
@@ -638,7 +638,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
 
   def teardown
     SetFileAttributes(@@txt_file, @attr) # Set file back to normal
-    File.delete(@temp) if File.exists?(@temp)
+    File.delete(@temp) if File.exist?(@temp)
     @dir  = nil
     @stat = nil
     @attr = nil
@@ -646,8 +646,8 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   def self.shutdown
-    File.delete(@@txt_file) if File.exists?(@@txt_file)
-    File.delete(@@exe_file) if File.exists?(@@exe_file)
+    File.delete(@@txt_file) if File.exist?(@@txt_file)
+    File.delete(@@exe_file) if File.exist?(@@exe_file)
 
     @@block_dev = nil
     @@txt_file  = nil
