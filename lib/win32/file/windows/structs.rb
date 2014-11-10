@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'constants')
+require_relative 'constants'
 
 require 'ffi'
 
@@ -8,6 +8,13 @@ module Windows
       extend FFI::Library
 
       private
+
+      class IO_STATUS_BLOCK < FFI::Struct
+        layout(
+          :union, Class.new(FFI::Union){ layout(:Status, :long, :Pointer, :pointer) },
+          :Information, :uintptr_t
+        )
+      end
 
       class LowHigh < FFI::Struct
         layout(:LowPart, :ulong, :HighPart, :ulong)
