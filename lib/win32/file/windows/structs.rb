@@ -23,7 +23,7 @@ module Windows
           :StreamNameLength, :ulong,
           :StreamSize, LARGE_INTEGER,
           :StreamAllocateSize, LARGE_INTEGER,
-          :StreamName, :pointer
+          :StreamName, [:uchar, 256]
         )
       end
 
