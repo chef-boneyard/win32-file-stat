@@ -1,3 +1,6 @@
+== 1.5.0 - 10-Nov-2014
+* ADded the #streams method, which shows alt streams for the file.
+
 == 1.4.3 - 8-May-2014
 * The #writable? method now ignores the readonly attribute if it's a directory.
 * Replaced File.exists? with File.exist? to avoid warnings in Ruby 2.1.x.
