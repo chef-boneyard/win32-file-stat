@@ -54,7 +54,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   end
 
   test "version is set to expected value" do
-    assert_equal('1.4.3', File::Stat::WIN32_FILE_STAT_VERSION)
+    assert_equal('1.5.0', File::Stat::WIN32_FILE_STAT_VERSION)
   end
 
   test "constructor does not modify argument" do
@@ -527,6 +527,15 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   test "sticky is always set to false" do
     assert_respond_to(@stat, :sticky?)
     assert_false(@stat.sticky?)
+  end
+
+  test "streams basic functionality" do
+    assert_respond_to(@stat, :streams)
+    assert_kind_of(Array, @stat.streams)
+  end
+
+  test "streams returns expected value" do
+    assert_equal("::$DATA", @stat.streams[0])
   end
 
   test "symlink? basic functionality" do
