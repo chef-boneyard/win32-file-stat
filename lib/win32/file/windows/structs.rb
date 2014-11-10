@@ -9,6 +9,16 @@ module Windows
 
       private
 
+      class FILE_STREAM_INFORMATION < FFI::Struct
+        layout(
+          :NextEntryOffset, :ulong,
+          :StreamNameLength, :ulong,
+          :StreamSize, Class.new(FFI::Union){ layout(:LowPart, :ulong, :HighPart, :long, :QuadPart, :long_long) },
+          :StreamAllocateSize, Class.new(FFI::Union){ layout(:LowPart, :ulong, :HighPart, :long, :QuadPart, :long_long) },
+          :StreamName, :pointer
+        )
+      end
+
       class IO_STATUS_BLOCK < FFI::Struct
         layout(
           :union, Class.new(FFI::Union){ layout(:Status, :long, :Pointer, :pointer) },
