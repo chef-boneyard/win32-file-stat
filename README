@@ -17,6 +17,7 @@
   p stat.readonly?
   p stat.hidden?
   p stat.uid 
+  p stat.streams
 
 == Differences between Ruby's File::Stat and this version:
   * The File::Stat#blksize method returns a meaningful value.
@@ -36,6 +37,7 @@
   * The File::Stat#grpowned? method now works properly.
   * The File::Stat#rdev method returns the volume serial number.
   * The inspect and pretty print output has been customized.
+  * The File::Stat#streams was added. Returns an array of alt streams.
 
 == Changes between this version and the previous versions.
   * The File::Stat#dev method has reverted to returning a drive number by
@@ -68,6 +70,12 @@
   I had to require 'pp' explicitly in order to deal with the fact that pp.rb
   has a builtin pretty_print method for File::Stat. If I didn't do this
   you would end up using the pretty_print in pp.rb, which would break.
+
+== Contributions
+  Although this library is free, please consider having your company
+  setup a gittip if used by your company professionally.
+
+  http://www.gittip.com/djberg96/
 
 == Copyright
   (C) 2003-2014, Daniel J. Berger, All Rights Reserved.
