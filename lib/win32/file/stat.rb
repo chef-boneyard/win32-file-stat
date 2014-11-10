@@ -721,10 +721,10 @@ class File::Stat
     io_status = IO_STATUS_BLOCK.new
     ptr = FFI::MemoryPointer.new(:uchar, 1024 * 64)
 
-    rv = NtQueryInformationFile(handle, io_status, ptr, ptr.size, FileStreamInformation)
+    NtQueryInformationFile(handle, io_status, ptr, ptr.size, FileStreamInformation)
 
-    if rv != 0
-      raise SystemCallError.new('NtQueryInformationFile', rv)
+    if FFI.errno != 0
+      raise SystemCallError.new('NtQueryInformationFile', FFI.errno)
     end
 
     arr = []
