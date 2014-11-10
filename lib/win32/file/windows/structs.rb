@@ -14,7 +14,7 @@ module Windows
       end
 
       class LARGE_INTEGER < FFI::Union
-        layout(:u, LowHighLarge, :QuadPart, :ulong_long)
+        layout(:u, LowHighLarge, :QuadPart, :long_long)
       end
 
       class FILE_STREAM_INFORMATION < FFI::Struct
