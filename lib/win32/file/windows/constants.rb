@@ -87,6 +87,8 @@ module Windows
 
       TokenUser   = 1
       TokenGroups = 2
+
+      FileStreamInformation = 22
     end
   end
 end
