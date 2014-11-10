@@ -16,6 +16,7 @@ module Windows
       typedef :pointer, :ptr
       typedef :buffer_in, :buf_in
       typedef :string, :str
+      typedef :long, :ntstatus
 
       ffi_convention :stdcall
 
@@ -52,6 +53,10 @@ module Windows
       attach_pfunc :BuildTrusteeWithSid, :BuildTrusteeWithSidW, [:ptr, :ptr], :void
       attach_pfunc :GetSecurityDescriptorDacl, [:ptr, :ptr, :ptr, :ptr], :bool
       attach_pfunc :GetEffectiveRightsFromAcl, :GetEffectiveRightsFromAclW, [:ptr, :ptr, :ptr], :dword
+
+      ffi_lib :ntdll
+
+      attach_pfunc :NtQueryInformationFile, [:handle, :pointer, :pointer, :ulong, :int], :ntstatus
     end
   end
 end
