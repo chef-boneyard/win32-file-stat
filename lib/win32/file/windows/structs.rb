@@ -9,12 +9,20 @@ module Windows
 
       private
 
+      class LowHighLarge < FFI::Struct
+        layout(:LowPart, :ulong, :HighPart, :long)
+      end
+
+      class LARGE_INTEGER < FFI::Union
+        layout(:u, LowHighLarge, :QuadPart, :ulong_long)
+      end
+
       class FILE_STREAM_INFORMATION < FFI::Struct
         layout(
           :NextEntryOffset, :ulong,
           :StreamNameLength, :ulong,
-          :StreamSize, Class.new(FFI::Union){ layout(:LowPart, :ulong, :HighPart, :long, :QuadPart, :long_long) },
-          :StreamAllocateSize, Class.new(FFI::Union){ layout(:LowPart, :ulong, :HighPart, :long, :QuadPart, :long_long) },
+          :StreamSize, LARGE_INTEGER,
+          :StreamAllocateSize, LARGE_INTEGER,
           :StreamName, :pointer
         )
       end
