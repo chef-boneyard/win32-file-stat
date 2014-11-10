@@ -1,7 +1,7 @@
-require File.join(File.dirname(__FILE__), 'windows', 'helper')
-require File.join(File.dirname(__FILE__), 'windows', 'constants')
-require File.join(File.dirname(__FILE__), 'windows', 'structs')
-require File.join(File.dirname(__FILE__), 'windows', 'functions')
+require_relative 'windows/helper'
+require_relative 'windows/constants'
+require_relative 'windows/structs'
+require_relative 'windows/functions'
 require 'pp'
 
 class File::Stat
@@ -86,6 +86,7 @@ class File::Stat
 
       if handle
         @filetype = get_filetype(handle)
+        @streams  = get_streams(handle)
         @chardev  = @filetype == FILE_TYPE_CHAR
         @regular  = @filetype == FILE_TYPE_DISK
         @pipe     = @filetype == FILE_TYPE_PIPE
@@ -713,6 +714,30 @@ class File::Stat
     file_type
   end
 
+  def get_streams(handle)
+    io_status = IO_STATUS_BLOCK.new
+    ptr = FFI::MemoryPointer.new(:uchar, 1024 * 64)
+
+    rv = NtQueryInformationFile(handle, io_status, ptr, ptr.size, FileStreamInformation)
+
+    if rv != 0
+      raise SystemCallError.new('NtQueryInformationFile', rv)
+    end
+
+    info = FILE_STREAM_INFORMATION.new(ptr)
+
+=begin
+    p info
+    p info[:NextEntryOffset]
+    p info[:StreamNameLength]
+    p info[:StreamSize][:QuadPart]
+    p info[:StreamAllocateSize][:QuadPart]
+    p info[:StreamName]
+    info = FILE_STREAM_INFORMATION.new(ptr += info[:NextEntryOffset])
+    p info[:NextEntryOffset]
+=end
+  end
+
   # Return a sid of the file's owner.
   #
   def get_file_sid(file, info)
@@ -945,4 +970,8 @@ class File::Stat
 
     check
   end
+end
+
+if $0 == __FILE__
+  File::Stat.new('stream.txt')
 end
