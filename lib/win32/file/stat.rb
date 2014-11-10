@@ -54,8 +54,11 @@ class File::Stat
   # Nil on Windows
   attr_reader :dev_major, :dev_minor, :rdev_major, :rdev_minor
 
+  # Alternate streams
+  attr_reader :streams
+
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.4.3'
+  WIN32_FILE_STAT_VERSION = '1.5.0'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
@@ -507,8 +510,8 @@ class File::Stat
     members = %w[
       archive? atime blksize blockdev? blocks compressed? ctime dev
       encrypted? gid hidden? indexed? ino mode mtime rdev nlink normal?
-      offline? readonly? reparse_point? size sparse? system? temporary?
-      uid
+      offline? readonly? reparse_point? size sparse? system? streams
+      temporary? uid
     ]
 
     str = "#<#{self.class}"
@@ -534,7 +537,7 @@ class File::Stat
     members = %w[
       archive? atime blksize blockdev? blocks compressed? ctime dev
       encrypted? gid hidden? indexed? ino mode mtime rdev nlink normal?
-      offline? readonly? reparse_point? size sparse? system? temporary?
+      offline? readonly? reparse_point? size sparse? streams system? temporary?
       uid
     ]
 
@@ -724,18 +727,17 @@ class File::Stat
       raise SystemCallError.new('NtQueryInformationFile', rv)
     end
 
-    info = FILE_STREAM_INFORMATION.new(ptr)
+    arr = []
 
-=begin
-    p info
-    p info[:NextEntryOffset]
-    p info[:StreamNameLength]
-    p info[:StreamSize][:QuadPart]
-    p info[:StreamAllocateSize][:QuadPart]
-    p info[:StreamName]
-    info = FILE_STREAM_INFORMATION.new(ptr += info[:NextEntryOffset])
-    p info[:NextEntryOffset]
-=end
+    while true
+      info = FILE_STREAM_INFORMATION.new(ptr)
+      break if info[:StreamNameLength] == 0
+      arr << info[:StreamName].to_ptr.read_bytes(info[:StreamNameLength]).delete(0.chr)
+      break if info[:NextEntryOffset] == 0
+      info = FILE_STREAM_INFORMATION.new(ptr += info[:NextEntryOffset])
+    end
+
+    arr
   end
 
   # Return a sid of the file's owner.
@@ -970,8 +972,4 @@ class File::Stat
 
     check
   end
-end
-
-if $0 == __FILE__
-  File::Stat.new('stream.txt')
 end
