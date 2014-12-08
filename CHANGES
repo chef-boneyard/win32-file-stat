@@ -1,5 +1,5 @@
 == 1.5.1 - ???
-* Added extra guard in ensure clause for earlier than expected failure.
+* Some minor refactoring for the get_current_process_sid method.
 
 == 1.5.0 - 10-Nov-2014
 * Added the #streams method, which shows alt streams for the file.
