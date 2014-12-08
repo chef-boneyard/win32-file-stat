@@ -1,3 +1,6 @@
+== 1.5.1 - ???
+* Added extra guard in ensure clause for earlier than expected failure.
+
 == 1.5.0 - 10-Nov-2014
 * Added the #streams method, which shows alt streams for the file.
 * Use require_relative where appropriate.
