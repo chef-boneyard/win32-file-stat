@@ -789,13 +789,13 @@ class File::Stat
     token = FFI::MemoryPointer.new(:uintptr_t)
     sid = nil
 
-    begin
-      # Get the current process sid
-      unless OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, token)
-        raise SystemCallError.new("OpenProcessToken", FFI.errno)
-      end
+    # Get the current process sid
+    unless OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, token)
+      raise SystemCallError.new("OpenProcessToken", FFI.errno)
+    end
 
-      token   = token.read_pointer.to_i
+    begin
+      token = token.read_pointer.to_i
       rlength = FFI::MemoryPointer.new(:pointer)
 
       if token_type == TokenUser
@@ -822,7 +822,7 @@ class File::Stat
 
       sid = ptr.read_pointer.read_string
     ensure
-      CloseHandle(token) if token && token.is_a?(Numeric)
+      CloseHandle(token) if token
     end
 
     sid
