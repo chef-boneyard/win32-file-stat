@@ -822,7 +822,7 @@ class File::Stat
 
       sid = ptr.read_pointer.read_string
     ensure
-      CloseHandle(token) if token
+      CloseHandle(token) if token && token.is_a?(Numeric)
     end
 
     sid
