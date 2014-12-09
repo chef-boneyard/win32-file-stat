@@ -1,4 +1,5 @@
-== 1.5.1 - ???
+== 1.5.1 - 8-Dec-2014
+* Added code to work around 64-bit JRuby bug.
 * Some minor refactoring for the get_current_process_sid method.
 
 == 1.5.0 - 10-Nov-2014
