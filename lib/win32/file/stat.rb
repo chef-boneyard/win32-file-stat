@@ -58,7 +58,7 @@ class File::Stat
   attr_reader :streams
 
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.5.0'
+  WIN32_FILE_STAT_VERSION = '1.5.1'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
@@ -564,6 +564,15 @@ class File::Stat
 
   private
 
+  # Workaround for bug in 64-big JRuby. Hope to remove it some day.
+  def get_ptr_type
+    if RUBY_PLATFORM == 'java' && ENV_JAVA['sun.arch.data.model'] == '64'
+      :ulong_long
+    else
+      :uintptr_t
+    end
+  end
+
   # Allow stringy arguments
   def string_check(arg)
     return arg if arg.is_a?(String)
@@ -786,7 +795,7 @@ class File::Stat
   # Return the sid of the current process.
   #
   def get_current_process_sid(token_type)
-    token = FFI::MemoryPointer.new(:uintptr_t)
+    token = FFI::MemoryPointer.new(get_ptr_type)
     sid = nil
 
     # Get the current process sid
@@ -822,7 +831,7 @@ class File::Stat
 
       sid = ptr.read_pointer.read_string
     ensure
-      CloseHandle(token) if token
+      CloseHandle(token)
     end
 
     sid
@@ -851,14 +860,14 @@ class File::Stat
 
     # Second attempt, now with the needed size
     if GetFileSecurity(wfile, flags, security_ptr, size_needed, size_needed_ptr)
-      token = FFI::MemoryPointer.new(:uintptr_t)
+      token = FFI::MemoryPointer.new(get_ptr_type)
 
       pflags = TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_DUPLICATE | STANDARD_RIGHTS_READ
 
       if OpenProcessToken(GetCurrentProcess(), pflags, token)
         begin
           token  = token.read_pointer.to_i
-          token2 = FFI::MemoryPointer.new(:uintptr_t)
+          token2 = FFI::MemoryPointer.new(get_ptr_type)
 
           if DuplicateToken(token, SecurityImpersonation, token2)
             begin
