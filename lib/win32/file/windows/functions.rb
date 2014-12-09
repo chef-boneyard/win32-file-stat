@@ -12,11 +12,16 @@ module Windows
       end
 
       typedef :ulong, :dword
-      typedef :uintptr_t, :handle
       typedef :pointer, :ptr
       typedef :buffer_in, :buf_in
       typedef :string, :str
       typedef :long, :ntstatus
+
+      if RUBY_PLATFORM == 'java' && ENV_JAVA['sun.arch.data.model'] == '64'
+        typedef :ulong_long, :handle
+      else
+        typedef :uintptr_t, :handle
+      end
 
       ffi_convention :stdcall
 
