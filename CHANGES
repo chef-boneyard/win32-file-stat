@@ -1,3 +1,9 @@
+== 1.5.2 - 9-Jul-2015
+* A working File::Stat#socket? method is now implemented. It is no longer
+  just an alias for the File::Stat#pipe? method.
+* Fixed a bug in File::Stat#file? where it could return true for directories and
+  reparse points. Thanks go to zinga666 for the spot.
+
 == 1.5.1 - 8-Dec-2014
 * Added code to work around 64-bit JRuby bug.
 * Some minor refactoring for the get_current_process_sid method.
