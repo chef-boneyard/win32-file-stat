@@ -36,6 +36,7 @@ module Windows
       attach_pfunc :GetDriveType, :GetDriveTypeW, [:buf_in], :uint
       attach_pfunc :GetFileInformationByHandle, [:handle, :ptr], :bool
       attach_pfunc :GetFileType, [:handle], :dword
+      attach_pfunc :GetNamedPipeInfo, [:handle, :ptr, :ptr, :ptr, :ptr], :bool
       attach_pfunc :OpenProcessToken, [:handle, :dword, :ptr], :bool
 
       ffi_lib :shlwapi
