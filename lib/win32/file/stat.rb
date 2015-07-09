@@ -93,10 +93,17 @@ class File::Stat
         @chardev  = @filetype == FILE_TYPE_CHAR
         @regular  = @filetype == FILE_TYPE_DISK
         @pipe     = @filetype == FILE_TYPE_PIPE
+
+        if @pipe
+          @socket = !GetNamedPipeInfo(handle, nil, nil, nil, nil)
+        else
+          @socket = false
+        end
       else
         @chardev = false
         @regular = false
         @pipe    = false
+        @socket  = false
       end
 
       fpath = path.wincode
@@ -261,7 +268,7 @@ class File::Stat
   # socket, etc.
   #
   def file?
-    @regular
+    @regular && !@directory && !@reparse_point
   end
 
   # Returns the user ID of the file. If full_sid is true, then the full
@@ -369,7 +376,10 @@ class File::Stat
     @pipe
   end
 
-  alias socket? pipe?
+  # Returns whether or not the file is a socket.
+  def socket?
+    @socket
+  end
 
   # Returns whether or not the file is a reparse point.
   #
