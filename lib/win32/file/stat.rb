@@ -58,7 +58,7 @@ class File::Stat
   attr_reader :streams
 
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.5.1'
+  WIN32_FILE_STAT_VERSION = '1.5.2'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
