@@ -126,7 +126,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(File::Stat.new('NUL').blockdev?)
   end
 
-  # In unusual situations this could fail.
+  # In unusual situations (such as VM's that set A:) this could fail.
   test "blockdev? returns the expected value for a block device" do
     omit_unless(@@block_dev)
     assert_true(File::Stat.new(@@block_dev).blockdev?)
@@ -236,7 +236,7 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
   test "file? custom method returns expected value" do
     assert_true(@stat.file?)
     assert_true(File::Stat.new(@@exe_file).file?)
-    assert_true(File::Stat.new(Dir.pwd).file?)
+    assert_false(File::Stat.new(Dir.pwd).file?)
     assert_false(File::Stat.new('NUL').file?)
   end
 
@@ -394,9 +394,9 @@ class TC_Win32_File_Stat < Test::Unit::TestCase
     assert_false(@stat.pipe?)
   end
 
-  test "socket? is an alias for pipe?" do
+  test "socket? custom method basic functionality" do
     assert_respond_to(@stat, :socket?)
-    assert_alias_method(@stat, :socket?, :pipe?)
+    assert_boolean(@stat.socket?)
   end
 
   test "readable? basic functionality" do
