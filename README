@@ -30,6 +30,7 @@
   * The File::Stat#pipe method works properly.
   * The File::Stat#socket method works more accurately.
   * The File::Stat#ino method now returns a file identifier.
+  * The File::Stat#socket? method works properly.
   * The File::Stat#symlink? method works properly.
   * The File::Stat#uid method returns a meaningful value.
   * The File::Stat#gid method returns a meaningful value.
@@ -40,9 +41,9 @@
   * The File::Stat#streams was added. Returns an array of alt streams.
 
 == Changes between this version and the previous versions.
-  * The File::Stat#dev method has reverted to returning a drive number by
-    default. However, you can pass an optional boolean argument to make it
-    return the drive letter instead.
+  The File::Stat#dev method has reverted to returning a drive number by
+  default. However, you can pass an optional boolean argument to make it
+  return the drive letter instead.
   
 == Known issues
   You should not require 'win32/file/stat' directly. Instead, require the
@@ -78,7 +79,7 @@
   http://www.gittip.com/djberg96/
 
 == Copyright
-  (C) 2003-2014, Daniel J. Berger, All Rights Reserved.
+  (C) 2003-2015, Daniel J. Berger, All Rights Reserved.
 
 == License
   Artistic 2.0
