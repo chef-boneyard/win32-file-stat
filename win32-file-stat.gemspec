@@ -14,6 +14,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 1.9.0"
 
   spec.add_dependency('ffi')
+  spec.add_dependency('ffi-win32-extensions')
+
   spec.add_development_dependency('test-unit')
   spec.add_development_dependency('win32-security')
   spec.add_development_dependency('rake')
