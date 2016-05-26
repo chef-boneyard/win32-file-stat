@@ -1,3 +1,8 @@
+== 1.5.3 - 25-May-2016
+* This gem is now signed.
+* The local helper file has been replaced by ffi-win32-extensions, which
+  has been added as a dependency.
+
 == 1.5.2 - 9-Jul-2015
 * A working File::Stat#socket? method is now implemented. It is no longer
   just an alias for the File::Stat#pipe? method.
