@@ -58,7 +58,7 @@ class File::Stat
   attr_reader :streams
 
   # The version of the win32-file-stat library
-  WIN32_FILE_STAT_VERSION = '1.5.3'
+  WIN32_FILE_STAT_VERSION = '1.5.4'
 
   # Creates and returns a File::Stat object, which encapsulate common status
   # information for File objects on MS Windows sytems. The information is
@@ -815,22 +815,29 @@ class File::Stat
 
     begin
       token = token.read_pointer.to_i
-      rlength = FFI::MemoryPointer.new(:pointer)
+      rlength = FFI::MemoryPointer.new(:ulong)
 
       if token_type == TokenUser
-        buf = 0.chr * 512
+        info = TOKEN_USER.new
       else
-        buf = TOKEN_GROUP.new
+        info = TOKEN_GROUP.new
       end
 
-      unless GetTokenInformation(token, token_type, buf, buf.size, rlength)
-        raise SystemCallError.new("GetTokenInformation", FFI.errno)
+      bool = GetTokenInformation(token, token_type, info, info.size, rlength)
+
+      if !bool && FFI.errno == ERROR_INSUFFICIENT_BUFFER
+        info = FFI::MemoryPointer.new(rlength.read_ulong)
+        rlength.clear
+        bool = GetTokenInformation(token, token_type, info, info.size, rlength)
+        info = TOKEN_USER.new(info) if bool
       end
+
+      raise SystemCallError.new('GetTokenInformation', FFI.errno) unless bool
 
       if token_type == TokenUser
-        tsid = buf[FFI.type_size(:pointer)*2, (rlength.read_ulong - FFI.type_size(:pointer)*2)]
+        tsid = info[:User][:Sid]
       else
-        tsid = buf[:Groups][0][:Sid]
+        tsid = info[:Groups][0][:Sid]
       end
 
       ptr = FFI::MemoryPointer.new(:string)
