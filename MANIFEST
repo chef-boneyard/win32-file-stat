@@ -1,8 +1,10 @@
+* appveyor.yml
 * CHANGES
-* README
 * MANIFEST
 * Rakefile
+* README
 * win32-file-stat.gemspec
+* certs/djberg96_pub.pem
 * lib/win32/file/stat.rb
 * lib/win32/file/windows/constants.rb
 * lib/win32/file/windows/functions.rb
