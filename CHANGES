@@ -1,3 +1,8 @@
+== 1.5.4 - 7-Jun-2016
+* It was possible that an internal FFI function (GetTokenInformation) could
+  fail if the buffer size wasn't large enough. That has been fixed. Thanks
+  go to ferfebles and Michael Lowell Roberts for the spot.
+
 == 1.5.3 - 25-May-2016
 * This gem is now signed.
 * The local helper file has been replaced by ffi-win32-extensions, which
