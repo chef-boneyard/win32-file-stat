@@ -1,3 +1,7 @@
+== 1.5.5 - 7-Jun-2016
+* Update to the internal get_current_process_sid method. No longer assumes
+  TOKEN_USER when reallocating a buffer.
+
 == 1.5.4 - 7-Jun-2016
 * It was possible that an internal FFI function (GetTokenInformation) could
   fail if the buffer size wasn't large enough. That has been fixed. Thanks
