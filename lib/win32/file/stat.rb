@@ -829,7 +829,14 @@ class File::Stat
         info = FFI::MemoryPointer.new(rlength.read_ulong)
         rlength.clear
         bool = GetTokenInformation(token, token_type, info, info.size, rlength)
-        info = TOKEN_USER.new(info) if bool
+
+        if bool
+          if token_type == TokenUser
+            info = TOKEN_USER.new(info)
+          else
+            info = TOKEN_GROUP.new(info)
+          end
+        end
       end
 
       raise SystemCallError.new('GetTokenInformation', FFI.errno) unless bool
