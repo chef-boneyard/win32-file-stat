@@ -152,6 +152,12 @@ module Windows
         )
       end
 
+      class TOKEN_USER < FFI::Struct
+        layout(
+          :User, SID_AND_ATTRIBUTES
+        )
+      end
+
       class GENERIC_MAPPING < FFI::Struct
         layout(
           :GenericRead, :ulong,
